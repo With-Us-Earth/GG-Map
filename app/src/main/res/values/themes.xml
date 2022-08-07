@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.GGMap" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.GGMap" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">#2A424C</item>
         <item name="colorPrimaryVariant">#0071CC</item>

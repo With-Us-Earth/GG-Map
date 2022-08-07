@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_move).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(this, MapActivity.this);
+                Intent intent = new Intent(getApplicationContext(), MapActivity.class);
                 startActivity(intent);
             }
         });
