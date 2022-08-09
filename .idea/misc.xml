@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/drawable/rect_round_edit.xml" value="0.2095" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_map.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_splash.xml" value="0.25" />
         <entry key="app/src/main/res/layout/drawer_header.xml" value="0.24320652173913043" />
         <entry key="app/src/main/res/menu/drawer_menu.xml" value="0.2760416666666667" />
       </map>
