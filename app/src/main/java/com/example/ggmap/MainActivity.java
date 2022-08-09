@@ -1,5 +1,10 @@
 package com.example.ggmap;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -11,15 +16,19 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.Menu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,26 +46,47 @@ import com.skt.Tmap.TMapTapi;
 import com.skt.Tmap.TMapView;
 
 public class MainActivity extends AppCompatActivity {
-
-    NavigationView navigationView;
-    DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
+    private boolean keep = true;
+    private final Runnable runner = new Runnable() {
+        @Override
+        public void run() {
+            keep = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Splash
+        splashScreen.setKeepOnScreenCondition(new SplashScreen.KeepOnScreenCondition() {
+            @Override
+            public boolean shouldKeepOnScreen() {
+                return keep;
+            }
+        });
+        Handler handler = new Handler();
+        handler.postDelayed(runner, 3000);
+
+        //TMap
         TMapView tMapView = new TMapView(this);
+        tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
+        //Navigation
         drawerLayout = findViewById(R.id.drawer_view);
         navigationView = findViewById(R.id.navigation_view);
 
         findViewById(R.id.btn_menu).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
@@ -132,68 +162,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-//        //내 위치 GPS
-//        @Override
-//        protected void onCreate(Bundle savedInstanceState) {
-//            super.onCreate(savedInstanceState);
-//            setContentView(R.layout.activity_main);
-//
-//            gpsTracker = new GpsTracker(MainActivity.this);
-//            double latitude = gpsTracker.getLatitude(); // 위도
-//            double longitude = gpsTracker.getLongitude();   //경도
-//            //필요시  String address = getCurrentAddress(latitude, longitude); 대한민국 서울시 종로구 ~~
-//        }
-
-
-
-
-        //검색 버튼
-        Button searchBtn = (Button) findViewById(R.id.btn_search);
-        searchBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "검색 버튼은 클릭했습니다.", Toast.LENGTH_SHORT).show();
-
-                //통합 검색
-                String s = String.valueOf(R.id.search_address);
-                TMapTapi tMapTapiSearch = new TMapTapi(MainActivity.this);
-                tMapTapiSearch.invokeSearchPortal(s);
-
-            }
-        });
-
-    }
-
-
-
-
-
-
-    //좌표
-//        TMapPoint tpoint1 = new TMapPoint(37.570841, 126.985302);
-//        double katech_x1= tpoint1.getKatechLat();
-//        double katech_y1 = tpoint1.getKatechLon();
-//
-//        TMapPoint tpoint2 = new TMapPoint(37.566385, 126.984098);
-//        double katech_x2= tpoint2.getKatechLat();
-//        double katech_y2 = tpoint2.getKatechLon();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -205,11 +173,13 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }*/
 
-    //drawerLayout = findViewById(R.id.drawer_view);
-    //drawerLayout.closeDrawer(GravityCompat.START);
-    //return true;
-    //}
-    //});
+        //drawerLayout = findViewById(R.id.drawer_view);
+        //drawerLayout.closeDrawer(GravityCompat.START);
+        //return true;
+        //}
+        //});
+
+        //GPS
 /*
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -242,6 +212,52 @@ public class MainActivity extends AppCompatActivity {
 */
 
 
+
+
+//        //내 위치 GPS
+//        @Override
+//        protected void onCreate(Bundle savedInstanceState) {
+//            super.onCreate(savedInstanceState);
+//            setContentView(R.layout.activity_main);
+//
+//            gpsTracker = new GpsTracker(MainActivity.this);
+//            double latitude = gpsTracker.getLatitude(); // 위도
+//            double longitude = gpsTracker.getLongitude();   //경도
+//            //필요시  String address = getCurrentAddress(latitude, longitude); 대한민국 서울시 종로구 ~~
+//        }
+
+
+        //검색 버튼
+        Button searchBtn = findViewById(R.id.btn_search);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "검색 버튼은 클릭했습니다.", Toast.LENGTH_SHORT).show();
+
+                //통합 검색
+                String s = String.valueOf(R.id.search_address);
+                TMapTapi tMapTapiSearch = new TMapTapi(MainActivity.this);
+                tMapTapiSearch.invokeSearchPortal(s);
+
+            }
+        });
+
+    }
+
+
+
+
+
+
+    //좌표
+//        TMapPoint tpoint1 = new TMapPoint(37.570841, 126.985302);
+//        double katech_x1= tpoint1.getKatechLat();
+//        double katech_y1 = tpoint1.getKatechLon();
+//
+//        TMapPoint tpoint2 = new TMapPoint(37.566385, 126.984098);
+//        double katech_x2= tpoint2.getKatechLat();
+//        double katech_y2 = tpoint2.getKatechLon();
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.drawer_menu, menu);
@@ -257,7 +273,6 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
 
 
 }
