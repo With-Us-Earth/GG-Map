@@ -13,6 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+
         <FrameLayout
             android:id="@+id/layout_Tmap"
             android:layout_width="match_parent"
@@ -30,7 +31,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="310dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="3dp"
@@ -52,20 +53,20 @@
 
                     <EditText
                         android:id="@+id/search_address"
-                        android:layout_width="202dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"
                         android:background="#00FFFFFF"
-                        android:ems="18"
+                        android:ems="15"
                         android:hint="주소 검색"
                         android:textSize="13.5sp"
                         android:textStyle="bold" />
-
                     <Button
                         android:id="@+id/btn_search"
-                        android:layout_width="50dp"
-                        android:layout_height="52dp"
+                        android:layout_width="40dp"
+                        android:layout_height="30dp"
+                        android:background="#00FFFFFF"
                         android:text="검색" />
 
                 </LinearLayout>
@@ -84,8 +85,6 @@
                     android:src="@drawable/ic_btn_streetfind" />
 
             </LinearLayout>
-
-
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -229,8 +228,5 @@
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/drawer_header"
         app:menu="@menu/drawer_menu" />
-
-
-
 
 </androidx.drawerlayout.widget.DrawerLayout>
