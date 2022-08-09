@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/930yu/StudioProjects/GG-Map/app/src/main/res/layout/activity_map.xml" value="0.12037037037037036" />
+        <entry key="..\:/Users/930yu/StudioProjects/GG-Map/app/src/main/res/layout/drawer_header.xml" value="0.1125" />
         <entry key="app/src/main/res/drawable/drawer_header.xml" value="0.2095" />
         <entry key="app/src/main/res/drawable/rect_round_button.xml" value="0.2095" />
         <entry key="app/src/main/res/drawable/rect_round_edit.xml" value="0.2095" />
