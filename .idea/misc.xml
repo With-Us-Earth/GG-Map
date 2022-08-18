@@ -5,6 +5,10 @@
       <map>
         <entry key="..\:/Users/930yu/StudioProjects/GG-Map/app/src/main/res/layout/activity_map.xml" value="0.12037037037037036" />
         <entry key="..\:/Users/930yu/StudioProjects/GG-Map/app/src/main/res/layout/drawer_header.xml" value="0.1125" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/drawable/ic_baseline_location_on_24.xml" value="0.1365" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/layout/activity_main.xml" value="0.1827016520894072" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/layout/activity_search.xml" value="0.26132246376811596" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/layout/activity_search_result.xml" value="0.26132246376811596" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1665" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_location.xml" value="0.1665" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_location_background.xml" value="0.1865" />
@@ -26,7 +30,6 @@
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.25" />
         <entry key="app/src/main/res/layout/drawer_header.xml" value="0.24320652173913043" />
         <entry key="app/src/main/res/menu/drawer_menu.xml" value="0.2760416666666667" />
-        <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1535" />
       </map>
     </option>
   </component>
