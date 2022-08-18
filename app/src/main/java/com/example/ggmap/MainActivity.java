@@ -3,6 +3,8 @@ package com.example.ggmap;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -14,23 +16,29 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,10 +54,18 @@ import com.skt.Tmap.TMapPoint;
 import com.skt.Tmap.TMapPolyLine;
 import com.skt.Tmap.TMapTapi;
 import com.skt.Tmap.TMapView;
+import com.skt.Tmap.poi_item.TMapPOIItem;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    private TMapView tMapView;
+    private LocationManager locationManager;
+    private ActivityResultLauncher<String[]> locationPermissionRequest;
+
     private boolean keep = true;
     private final Runnable runner = new Runnable() {
         @Override
@@ -58,8 +74,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
@@ -67,18 +81,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Splash
-        splashScreen.setKeepOnScreenCondition(new SplashScreen.KeepOnScreenCondition() {
+        /*splashScreen.setKeepOnScreenCondition(new SplashScreen.KeepOnScreenCondition() {
             @Override
             public boolean shouldKeepOnScreen() {
                 return keep;
             }
         });
         Handler handler = new Handler();
-        handler.postDelayed(runner, 3000);
+        handler.postDelayed(runner, 3000);*/
 
         //TMap
-        TMapView tMapView = new TMapView(this);
+        tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
+        tMapView.setHttpsMode(true);
+
+        tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
@@ -183,96 +200,110 @@ public class MainActivity extends AppCompatActivity {
         //}
         //});
 
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
         //GPS 권한 요청
-        ActivityResultLauncher<String[]> locationPermissionRequest =
+        locationPermissionRequest =
                 registerForActivityResult(new ActivityResultContracts
                                 .RequestMultiplePermissions(), result -> {
                             Boolean fineLocationGranted = result.getOrDefault(
                                     Manifest.permission.ACCESS_FINE_LOCATION, false);
                             Boolean coarseLocationGranted = result.getOrDefault(
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,false);
+                                    Manifest.permission.ACCESS_COARSE_LOCATION, false);
+
                             if (fineLocationGranted != null && fineLocationGranted) {
                                 // Precise location access granted.
                             } else if (coarseLocationGranted != null && coarseLocationGranted) {
                                 // Only approximate location access granted.
                             } else {
-
-                                finish();
                                 // No location access granted.
+                                Toast.makeText(this, "GPS 권한 요청이 거부되었습니다.", Toast.LENGTH_SHORT).show();
+
                             }
+
                         }
                 );
-        locationPermissionRequest.launch(new String[] {
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-        });
-/*
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            locationPermissionRequest.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
 
-        final LocationListener locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(@NonNull Location location) {
-                String provider = location.getProvider();
-                double longitude = location.getLongitude();
-                double latitude = location.getLatitude();
-                tMapView.setCenterPoint(location.getLatitude(), location.getLongitude());
+        } else {
+            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (location != null) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
             }
-        };
+        }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
-*/
+        findViewById(R.id.tv_search_address).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                startActivity(intent);
+            }
+        });
 
+        findViewById(R.id.btn_myLocation).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getMyLocation();
+                tMapView.setTrackingMode(true);
 
-
-
-//        //내 위치 GPS
-//        @Override
-//        protected void onCreate(Bundle savedInstanceState) {
-//            super.onCreate(savedInstanceState);
-//            setContentView(R.layout.activity_main);
-//
-//            gpsTracker = new GpsTracker(MainActivity.this);
-//            double latitude = gpsTracker.getLatitude(); // 위도
-//            double longitude = gpsTracker.getLongitude();   //경도
-//            //필요시  String address = getCurrentAddress(latitude, longitude); 대한민국 서울시 종로구 ~~
-//        }
-
-
-        //검색 버튼
-        Button searchBtn = findViewById(R.id.btn_search);
-        searchBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "검색 버튼은 클릭했습니다.", Toast.LENGTH_SHORT).show();
-
-                //통합 검색
-                String s = String.valueOf(R.id.search_address);
-                TMapTapi tMapTapiSearch = new TMapTapi(MainActivity.this);
-                tMapTapiSearch.invokeSearchPortal(s);
-
+                if(tMapView.getIsCompass())
+                    tMapView.setCompassMode(false);
+                else
+                    tMapView.setCompassMode(true);
             }
         });
 
     }
 
+    public void getMyLocation() {
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
 
+            locationPermissionRequest.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
+        } else {
+            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (location != null) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
+            }
+        }
+    }
 
+    private final LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            String provider = location.getProvider();
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
 
+            //마커 생성
+            TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
+            TMapPoint tMapPointStart = new TMapPoint(latitude, longitude);
 
+            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
+
+            //출발지 마커
+            tMapMarkerItem.setIcon(bitmap_start); // 마커 아이콘 지정
+            tMapMarkerItem.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
+            tMapMarkerItem.setTMapPoint(tMapPointStart); // 마커의 좌표 지정
+            tMapMarkerItem.setName("GPGP"); // 마커의 타이틀 지정
+            tMapView.addMarkerItem("myLocation", tMapMarkerItem); // 지도에 마커 추가
+            tMapView.setCenterPoint(tMapPointStart.getLongitude(), tMapPointStart.getLatitude());
+        }
+    };
 
     //좌표
 //        TMapPoint tpoint1 = new TMapPoint(37.570841, 126.985302);
@@ -292,10 +323,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)){
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
-        }
-        else{
+        } else {
             super.onBackPressed();
         }
     }
