@@ -62,7 +62,7 @@ public class SearchResultActivity extends AppCompatActivity {
                     markerItems.add(new TMapMarkerItem());
                     TMapPoint tMapPointStart = new TMapPoint(lat, lon);
 
-                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
+                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location_result);
                     markerItems.get(i).setIcon(bitmap_start); // 마커 아이콘 지정
                     markerItems.get(i).setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
                     markerItems.get(i).setTMapPoint(tMapPointStart); // 마커의 좌표 지정
