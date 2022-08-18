@@ -1,6 +1,7 @@
 package com.example.ggmap;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -24,9 +25,10 @@ public class SearchActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-/*
+
         EditText search_address = findViewById(R.id.et_search_address);
         //검색창
         search_address.setOnKeyListener(new View.OnKeyListener() {
@@ -53,6 +55,14 @@ public class SearchActivity extends AppCompatActivity {
                 return true;
             }
         });
-*/
+
+
+        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
     }
 }

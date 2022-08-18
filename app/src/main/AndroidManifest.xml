@@ -21,8 +21,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SearchActivity" android:exported="true" android:parentActivityName=".MainActivity" />
-        <activity android:name=".SearchResultActivity" android:exported="true"/>
+        <activity android:name=".SearchActivity" android:exported="true" android:parentActivityName=".MainActivity" >
+
+        </activity>
+        <activity android:name=".SearchResultActivity" android:exported="true">
+
+        </activity>
     </application>
 
 </manifest>

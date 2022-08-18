@@ -37,6 +37,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
@@ -220,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(this, "GPS 권한 요청이 거부되었습니다.", Toast.LENGTH_SHORT).show();
 
                             }
-
                         }
                 );
 
@@ -252,8 +254,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_myLocation).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getMyLocation();
-                tMapView.setTrackingMode(true);
+                //getMyLocation();
+                //tMapView.setTrackingMode(true);
 
                 if(tMapView.getIsCompass())
                     tMapView.setCompassMode(false);
@@ -276,6 +278,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
+                Toast.makeText(getApplicationContext(),"hi",Toast.LENGTH_SHORT).show();
+
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
             }
@@ -295,6 +299,8 @@ public class MainActivity extends AppCompatActivity {
 
             Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
 
+            TextView textView = findViewById(R.id.tv_search_address);
+            textView.setText("위도: "+latitude+"경도: "+longitude);
             //출발지 마커
             tMapMarkerItem.setIcon(bitmap_start); // 마커 아이콘 지정
             tMapMarkerItem.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정

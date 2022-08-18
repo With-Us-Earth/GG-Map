@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapMarkerItem;
@@ -25,11 +26,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SearchResultActivity extends AppCompatActivity {
-
     private TMapView tMapView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
 
@@ -68,6 +69,14 @@ public class SearchResultActivity extends AppCompatActivity {
                     markerItems.get(i).setName(item.getPOIName()); // 마커의 타이틀 지정
                     tMapView.addMarkerItem("searchItem" + Integer.toString(i), markerItems.get(i)); // 지도에 마커 추가
                 }
+            }
+        });
+
+
+        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
             }
         });
 
