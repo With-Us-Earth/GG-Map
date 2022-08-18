@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_view"
@@ -51,22 +50,21 @@
                         android:layout_marginStart="7dp"
                         android:backgroundTint="#00FFFFFF"
                         android:src="@drawable/ic_baseline_menu_24"
-                        app:tint="@color/black" />
+                        app:tint="#505050" />
 
                     <TextView
                         android:id="@+id/tv_search_address"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_gravity="center"
-                        android:gravity="center_vertical"
                         android:layout_marginStart="10dp"
                         android:background="#00FFFFFF"
                         android:ems="18"
-                        android:text="주소 검색"
+                        android:gravity="center_vertical"
                         android:maxLines="1"
-                        android:textSize="13.5sp"
+                        android:text="주소 검색"
                         android:textColor="#ACACAC"
-                        android:textStyle="bold" />
+                        android:textSize="13.5sp" />
 
 
                 </LinearLayout>
@@ -87,19 +85,112 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|top"
+                android:layout_marginTop="100dp"
+                android:layout_marginEnd="5dp"
+                android:background="#00FFFFFF"
+                android:elevation="3dp"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:padding="7dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/layout_round"
+                    android:elevation="3dp"
+                    android:gravity="center"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/icon_light"
+                    android:text="전체"
+                    android:textColor="#5E5E5E" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|start|bottom"
+                android:layout_marginStart="15dp"
+                android:layout_marginBottom="120dp"
+                android:background="#00FFFFFF"
+                android:elevation="3dp"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_round_keyboard_double_arrow_up_24"
+                    android:tint="#000000"
+                    tools:ignore="UseAppTint" />
+
+                <TextView
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_margin="7dp"
+                    android:background="@drawable/layout_round"
+                    android:elevation="3dp"
+                    android:gravity="center"
+                    android:text="전체"
+                    android:textColor="#5E5E5E" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center|bottom"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="120dp"
+                android:background="@color/white"
+                android:elevation="3dp"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/btn_max"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:backgroundTint="@color/white"
+                    android:src="@drawable/ic_round_add_24"
+                    app:tint="#A5A5A5" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#DDDDDD" />
+
+                <ImageButton
+                    android:id="@+id/btn_min"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:backgroundTint="@color/white"
+                    android:src="@drawable/ic_round_remove_24"
+                    app:tint="#A5A5A5" />
+
+            </LinearLayout>
+
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginStart="15dp"
                 android:layout_marginEnd="15dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="18dp"
                 android:background="@drawable/rect_round_edit"
                 android:backgroundTint="@color/white"
                 android:elevation="2dp"
                 android:orientation="horizontal"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -116,7 +207,7 @@
                         android:background="#00FFFFFF"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_outline_share_24"
-                        app:tint="#505050" />
+                        app:tint="#2B2B2B" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -125,11 +216,9 @@
                         android:layout_marginTop="3dp"
                         android:text="내 위치 공유"
                         android:textColor="@color/black"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
+                        android:textSize="10sp" />
 
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -146,7 +235,7 @@
                         android:background="#00FFFFFF"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_outline_bookmark_added_24"
-                        app:tint="#505050" />
+                        app:tint="#2B2B2B" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -155,8 +244,7 @@
                         android:layout_marginTop="3dp"
                         android:text="즐겨찾기"
                         android:textColor="@color/black"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
+                        android:textSize="10sp" />
 
                 </LinearLayout>
 
@@ -175,7 +263,7 @@
                         android:background="#00FFFFFF"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_outline_my_location_24"
-                        app:tint="#505050" />
+                        app:tint="#2B2B2B" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -184,8 +272,7 @@
                         android:layout_marginTop="3dp"
                         android:text="현 위치"
                         android:textColor="@color/black"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
+                        android:textSize="10sp" />
 
                 </LinearLayout>
 
@@ -213,8 +300,7 @@
                         android:layout_marginTop="3dp"
                         android:text="긴급 전화"
                         android:textColor="#E30202"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
+                        android:textSize="10sp" />
 
                 </LinearLayout>
 

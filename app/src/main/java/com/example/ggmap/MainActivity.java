@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
         tMapView.setHttpsMode(true);
+        tMapView.setZoomLevel(15);
 
         tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);
 
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 TMapPoint tMapPointEnd = new TMapPoint(37.551135, 126.988205); // N서울타워(목적지)
 
                 //마커 아이콘 가져오기
-                Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
+                Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.location_depart);
                 //출발지 마커
                 markerItem_start.setIcon(bitmap_start); // 마커 아이콘 지정
                 markerItem_start.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 //마커 아이콘 가져오기
-                Bitmap bitmap_end = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
+                Bitmap bitmap_end = BitmapFactory.decodeResource(getResources(), R.drawable.location_arriv);
                 //목적지 마커
                 markerItem_end.setIcon(bitmap_end); // 마커 아이콘 지정
                 markerItem_end.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
@@ -171,7 +172,10 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
                             tMapPolyLine.setLineColor(Color.BLUE);
-                            tMapPolyLine.setLineWidth(5);
+                            tMapPolyLine.setLineWidth(20);
+                            tMapPolyLine.setOutLineWidth(20);
+                            tMapPolyLine.setLineColor(Color.parseColor("#3094ff"));
+                            tMapPolyLine.setOutLineColor(Color.parseColor("#002247"));
                             tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine);
 
                         } catch (Exception e) {
@@ -261,6 +265,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.btn_max).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tMapView.setZoomLevel(tMapView.getZoomLevel()+1);
+            }
+        });
+
+        findViewById(R.id.btn_min).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tMapView.setZoomLevel(tMapView.getZoomLevel()-1);
+            }
+        });
+
+
     }
 
     public void getMyLocation() {
@@ -275,7 +294,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
-                Toast.makeText(getApplicationContext(),"hi",Toast.LENGTH_SHORT).show();
 
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
@@ -294,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
             TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
             TMapPoint tMapPointStart = new TMapPoint(latitude, longitude);
 
-            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
+            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);
 
             TextView textView = findViewById(R.id.tv_search_address);
             textView.setText("위도: "+latitude+"경도: "+longitude);

@@ -41,7 +41,6 @@ public class SearchActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(),"검색어를 입력해주세요",Toast.LENGTH_SHORT).show();
                         }
                         else{
-                            Toast.makeText(getApplicationContext(),"하이룽~",Toast.LENGTH_SHORT).show();
                             InputMethodManager imm = (InputMethodManager) getSystemService(MainActivity.INPUT_METHOD_SERVICE);
                             imm.hideSoftInputFromWindow(search_address.getWindowToken(), 0);
 

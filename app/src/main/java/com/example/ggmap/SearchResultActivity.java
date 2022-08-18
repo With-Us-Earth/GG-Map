@@ -27,6 +27,9 @@ import java.util.Arrays;
 
 public class SearchResultActivity extends AppCompatActivity {
     private TMapView tMapView;
+    private ArrayList<TMapMarkerItem> markerItems = new ArrayList<>();
+    private TMapPoint tMapPoint;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,6 +39,8 @@ public class SearchResultActivity extends AppCompatActivity {
 
         tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
+        tMapView.setZoomLevel(15);
+
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
@@ -46,7 +51,6 @@ public class SearchResultActivity extends AppCompatActivity {
         TextView tv_search_address2 = findViewById(R.id.tv_search_address2);
         tv_search_address2.setText(address);
 
-        ArrayList<TMapMarkerItem> markerItems = new ArrayList<>();
         TMapData tMapData = new TMapData();
         tMapData.findAllPOI(address, new TMapData.FindAllPOIListenerCallback() {
             @Override
@@ -60,15 +64,19 @@ public class SearchResultActivity extends AppCompatActivity {
 
                     //마커 생성
                     markerItems.add(new TMapMarkerItem());
-                    TMapPoint tMapPointStart = new TMapPoint(lat, lon);
+                    tMapPoint = new TMapPoint(lat, lon);
 
                     Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location_result);
                     markerItems.get(i).setIcon(bitmap_start); // 마커 아이콘 지정
                     markerItems.get(i).setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
-                    markerItems.get(i).setTMapPoint(tMapPointStart); // 마커의 좌표 지정
+                    markerItems.get(i).setTMapPoint(tMapPoint); // 마커의 좌표 지정
                     markerItems.get(i).setName(item.getPOIName()); // 마커의 타이틀 지정
+                    markerItems.get(i).setCanShowCallout(true);
+                    markerItems.get(i).setCalloutTitle(item.getPOIName());
                     tMapView.addMarkerItem("searchItem" + Integer.toString(i), markerItems.get(i)); // 지도에 마커 추가
+
                 }
+                tMapView.setCenterPoint(tMapPoint.getLongitude(),tMapPoint.getLatitude());
             }
         });
 

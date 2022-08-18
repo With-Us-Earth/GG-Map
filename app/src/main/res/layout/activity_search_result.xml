@@ -32,7 +32,7 @@
                 android:layout_marginStart="7dp"
                 android:backgroundTint="#00FFFFFF"
                 android:src="@drawable/ic_round_arrow_back_24"
-                app:tint="@color/black" />
+                app:tint="#505050" />
 
             <TextView
                 android:id="@+id/tv_search_address2"
@@ -44,8 +44,7 @@
                 android:background="#00FFFFFF"
                 android:maxLines="1"
                 android:text="주소 검색"
-                android:textSize="13.5sp"
-                android:textStyle="bold" />
+                android:textSize="13.5sp" />
 
             <ImageButton
                 android:id="@+id/btn_close"
@@ -56,9 +55,10 @@
                 android:layout_marginEnd="7dp"
                 android:backgroundTint="#00FFFFFF"
                 android:src="@drawable/ic_round_close_24"
-                app:tint="#8F8F8F" />
+                app:tint="#505050" />
 
         </LinearLayout>
+
 
     </FrameLayout>
 
