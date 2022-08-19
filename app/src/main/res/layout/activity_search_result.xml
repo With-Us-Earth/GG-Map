@@ -59,6 +59,41 @@
 
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btn_set_start"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="60dp"
+            android:background="#FFFFFF"
+            android:text="출발지 선택" />
+
+        <Button
+            android:id="@+id/btn_set_end"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:layout_gravity="left"
+            android:layout_marginTop="60dp"
+            android:layout_marginLeft="170dp"
+            android:background="#FFFFFF"
+            android:text="도착지 선택" />
+
+        <ImageButton
+            android:id="@+id/btn_streetfind"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="right"
+            android:layout_marginTop="60dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/rect_round_button"
+            android:backgroundTint="#0060F1"
+            android:elevation="3dp"
+            android:padding="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_btn_streetfind" />
+
 
     </FrameLayout>
 
