@@ -22,7 +22,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.Menu;
@@ -38,6 +37,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
@@ -59,7 +61,6 @@ import com.skt.Tmap.poi_item.TMapPOIItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
         tMapView.setHttpsMode(true);
+        tMapView.setZoomLevel(15);
 
         tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);
 
@@ -128,71 +130,15 @@ public class MainActivity extends AppCompatActivity {
         tMapView.setCenterPoint(126.985302, 37.570841);
 
         //길찾기 버튼
-        ImageButton streetfindBtn = (ImageButton) findViewById(R.id.btn_streetfind);
-        streetfindBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //길찾기 버튼 작동 테스트
-                Toast.makeText(MainActivity.this, "길찾기 버튼은 클릭했습니다.", Toast.LENGTH_SHORT).show();
-
-//                //티맵 앱 길안내
-//                TMapTapi tMapTapiStreet = new TMapTapi(MapActivity.this);
-//                tMapTapiStreet.invokeRoute("T타워", 126.984098f, 37.566385f);
-
-
-                //마커 생성
-                TMapMarkerItem markerItem_start = new TMapMarkerItem();
-                TMapMarkerItem markerItem_end = new TMapMarkerItem();
-
-                //출발지와 목적지 좌표
-                TMapPoint tMapPointStart = new TMapPoint(37.570841, 126.985302); // SKT타워(출발지)
-                TMapPoint tMapPointEnd = new TMapPoint(37.551135, 126.988205); // N서울타워(목적지)
-
-                //마커 아이콘 가져오기
-                Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
-                //출발지 마커
-                markerItem_start.setIcon(bitmap_start); // 마커 아이콘 지정
-                markerItem_start.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
-                markerItem_start.setTMapPoint(tMapPointStart); // 마커의 좌표 지정
-                markerItem_start.setName("출발지 마커"); // 마커의 타이틀 지정
-                tMapView.addMarkerItem("markerItem_start", markerItem_start); // 지도에 마커 추가
-
-
-                //마커 아이콘 가져오기
-                Bitmap bitmap_end = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
-                //목적지 마커
-                markerItem_end.setIcon(bitmap_end); // 마커 아이콘 지정
-                markerItem_end.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
-                markerItem_end.setTMapPoint(tMapPointEnd); // 마커의 좌표 지정
-                markerItem_end.setName("목적지 마커"); // 마커의 타이틀 지정
-                tMapView.addMarkerItem("markerItem_end", markerItem_end); // 지도에 마커 추가
-
-
-                //앱 지도 이동 (왜안되지)
-//                TMapTapi tMapTapiMove = new TMapTapi(MapActivity.this);
-//                tMapTapiMove.invokeSetLocation("map_move", (float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
-
-                //목적지로 지도 이동
-                tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
-
-
-                //보행자 경로로 PolyLine 띄우기
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
-                            tMapPolyLine.setLineColor(Color.BLUE);
-                            tMapPolyLine.setLineWidth(5);
-                            tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }.start();
-
+        findViewById(R.id.btn_streetfind).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), SearchPathActivity.class);
+                startActivity(intent);
             }
         });
+
+
 
 /*
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -271,6 +217,22 @@ public class MainActivity extends AppCompatActivity {
                     tMapView.setCompassMode(true);
             }
         });
+
+        findViewById(R.id.btn_max).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tMapView.setZoomLevel(tMapView.getZoomLevel()+1);
+            }
+        });
+
+        findViewById(R.id.btn_min).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tMapView.setZoomLevel(tMapView.getZoomLevel()-1);
+            }
+        });
+
+
     } // end of onCreate()
 
     public void getMyLocation() {
@@ -285,7 +247,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
-                Toast.makeText(getApplicationContext(),"hi",Toast.LENGTH_SHORT).show();
 
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
@@ -304,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
             TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
             TMapPoint tMapPointStart = new TMapPoint(latitude, longitude);
 
-            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location);
+            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);
 
             TextView textView = findViewById(R.id.tv_search_address);
             textView.setText("위도: "+latitude+"경도: "+longitude);

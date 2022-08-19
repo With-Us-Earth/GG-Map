@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context=".SearchPathResultActivity">
+
+
+    <FrameLayout
+        android:id="@+id/layout_Tmap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@color/white"
+            android:elevation="3dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageButton
+                    android:id="@+id/btn_back"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="7dp"
+                    android:backgroundTint="#00FFFFFF"
+                    android:src="@drawable/ic_round_arrow_back_24"
+                    app:tint="#505050" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:text="• 출발지: "
+                    android:textSize="13.5sp" />
+
+                <TextView
+                    android:id="@+id/et_depart"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:layout_marginStart="5dp"
+                    android:background="#00FFFFFF"
+                    android:ems="17"
+                    android:gravity="center_vertical"
+                    android:text="출발지"
+                    android:textSize="13.5sp" />
+
+
+                <ImageButton
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="10dp"
+                    android:backgroundTint="#00FFFFFF"
+                    android:src="@drawable/ic_baseline_import_export_24"
+                    android:tint="#505050"
+                    tools:ignore="UseAppTint" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
+                android:background="#F1F1F1" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:background="@color/white"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="7dp"
+                    android:backgroundTint="#00FFFFFF"
+                    app:tint="#505050" />
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:text="• 도착지: "
+                    android:textColor="#3A3A3A"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/et_arriv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="5dp"
+                    android:background="#00FFFFFF"
+                    android:ems="17"
+                    android:gravity="center_vertical"
+                    android:text="도착지"
+                    android:textColor="#3A3A3A"
+                    android:textSize="13.5sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+    </FrameLayout>
+
+</LinearLayout>

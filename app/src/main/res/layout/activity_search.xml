@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/white"
+    android:orientation="vertical"
     tools:context=".SearchActivity">
 
 
@@ -28,23 +27,47 @@
             android:layout_marginStart="7dp"
             android:backgroundTint="#00FFFFFF"
             android:src="@drawable/ic_round_arrow_back_24"
-            app:tint="@color/black" />
+            app:tint="#505050" />
 
         <EditText
             android:id="@+id/et_search_address"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:gravity="center_vertical"
             android:layout_marginStart="10dp"
             android:background="#00FFFFFF"
             android:ems="17"
+            android:gravity="center_vertical"
             android:hint="주소 검색"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1"
-            android:textSize="13.5sp"
-            android:textStyle="bold" />
+            android:textSize="13.5sp" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E3E3E3" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_navigation_24"
+            android:tint="@color/black"
+            tools:ignore="UseAppTint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="내 위치" />
 
     </LinearLayout>
 
@@ -59,8 +82,7 @@
             android:layout_height="match_parent"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:scrollbars="none"
-            />
+            android:scrollbars="none" />
 
     </LinearLayout>
 
