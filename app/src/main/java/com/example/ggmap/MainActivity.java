@@ -22,6 +22,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.Menu;
@@ -37,9 +38,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
@@ -61,6 +59,7 @@ import com.skt.Tmap.poi_item.TMapPOIItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
@@ -102,6 +101,15 @@ public class MainActivity extends AppCompatActivity {
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
+
+        /* // <<---가로등--->
+        // Load Database (StreetLight)
+        List<GwangjinStreetLight> gjStreetLightsList = initLoadStreetDatabase();
+
+        // Add StreetLight Marker
+        addStreetLightMarker(gjStreetLightsList);
+
+         */
 
         //Navigation
         drawerLayout = findViewById(R.id.drawer_view);
@@ -263,8 +271,7 @@ public class MainActivity extends AppCompatActivity {
                     tMapView.setCompassMode(true);
             }
         });
-
-    }
+    } // end of onCreate()
 
     public void getMyLocation() {
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -310,6 +317,42 @@ public class MainActivity extends AppCompatActivity {
             tMapView.setCenterPoint(tMapPointStart.getLongitude(), tMapPointStart.getLatitude());
         }
     };
+    /*
+    // <<---가로등--->>
+    public List<GwangjinStreetLight> initLoadStreetDatabase() {
+        DatabaseHelper databaseHelper = new DatabaseHelper(getApplicationContext());
+        databaseHelper.OpenDatabaseFile();
+
+        List<GwangjinStreetLight> gjStreetLightsList = databaseHelper.getTableData();
+        Log.e("test", String.valueOf(gjStreetLightsList.size()));
+
+        databaseHelper.close();
+        return gjStreetLightsList;
+    }
+
+    public void addStreetLightMarker(List<GwangjinStreetLight> gjStreetLightsList) {
+
+        // Marker img -> bitmap
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
+
+        for (int i = 0; i < gjStreetLightsList.size(); i++) {
+            double lat = gjStreetLightsList.get(i).latitude;      // 위도
+            double lon = gjStreetLightsList.get(i).longitude;     // 경도
+
+            // TMapPoint
+            TMapPoint tMapPoint = new TMapPoint(lat, lon);
+
+            // TMapMarkerItem
+            // Marker Initial Settings
+            TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
+            tMapMarkerItem.setIcon(bitmap);                 // bitmap를 Marker icon으로 사용
+            tMapMarkerItem.setPosition(0.5f, 1.0f);  // Marker img의 position
+            tMapMarkerItem.setTMapPoint(tMapPoint);         // Marker의 위치
+
+            // add Marker on T Map View
+            // id로 Marker을 식별
+            tMapView.addMarkerItem("gjStreetLightsLocation" + i, tMapMarkerItem);
+        } //*/
 
     //좌표
 //        TMapPoint tpoint1 = new TMapPoint(37.570841, 126.985302);
