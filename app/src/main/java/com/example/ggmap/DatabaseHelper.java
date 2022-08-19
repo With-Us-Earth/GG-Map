@@ -124,7 +124,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     // 해당 Row 저장
                     GwangjinStreetLight gwangjinStreetLight = new GwangjinStreetLight();
 
-                    gwangjinStreetLight.setName(mCursor.getString(0));
                     gwangjinStreetLight.setLatitude(mCursor.getDouble(1));
                     gwangjinStreetLight.setLongitude(mCursor.getDouble(2));
 

@@ -6,12 +6,10 @@ public class GwangjinStreetLight {
     public double longitude;
 
     // set function
-    public void setName(String name){ this.name = name; }
     public void setLatitude(double latitude){ this.latitude = latitude; }
     public void setLongitude(double longitude){ this.longitude = longitude; }
 
     // get function
-    public String getName(){ return this.name; }
     public double getLatitude(){ return this.latitude; }
     public double getLongitude(){ return this.longitude; }
 }
