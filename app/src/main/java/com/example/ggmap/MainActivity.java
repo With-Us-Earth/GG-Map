@@ -22,6 +22,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.Menu;
@@ -51,6 +52,11 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapMarkerItem;
 import com.skt.Tmap.TMapPoint;
@@ -61,15 +67,15 @@ import com.skt.Tmap.poi_item.TMapPOIItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private NavigationView navigationView;
     private DrawerLayout drawerLayout;
     private TMapView tMapView;
     private LocationManager locationManager;
     private ActivityResultLauncher<String[]> locationPermissionRequest;
 
-    private boolean keep = true;
+    boolean keep = true;
     private final Runnable runner = new Runnable() {
         @Override
         public void run() {
@@ -93,29 +99,24 @@ public class MainActivity extends AppCompatActivity {
         Handler handler = new Handler();
         handler.postDelayed(runner, 3000);*/
 
-        //TMap
+        //TMap initial
         tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
         tMapView.setHttpsMode(true);
         tMapView.setZoomLevel(15);
-
         tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);
+        tMapView.setCenterPoint(126.985302, 37.570841);
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
-        /* // <<---가로등--->
-        // Load Database (StreetLight)
-        List<GwangjinStreetLight> gjStreetLightsList = initLoadStreetDatabase();
-
-        // Add StreetLight Marker
-        addStreetLightMarker(gjStreetLightsList);
-
-         */
+        //가로등
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("서울시");
+        databaseReference.child("종로구").addValueEventListener(valueEventListener);
 
         //Navigation
         drawerLayout = findViewById(R.id.drawer_view);
-        navigationView = findViewById(R.id.navigation_view);
+        NavigationView navigationView = findViewById(R.id.navigation_view);
 
         findViewById(R.id.btn_menu).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,9 +127,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        //초기 지도 중심점
-        tMapView.setCenterPoint(126.985302, 37.570841);
-
         //길찾기 버튼
         findViewById(R.id.btn_streetfind).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,16 +136,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-        //=================================♥♥♥♥♥요기부터♥♥♥♥♥
-
+        //Navigation
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-                switch (item.getItemId()){
+                switch (item.getItemId()) {
                     case R.id.human_check_tap:
                         //인적 확인 탭
                         findViewById(R.id.human_check_tap).setOnClickListener(new View.OnClickListener() {
@@ -160,13 +155,12 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
 
-        drawerLayout = findViewById(R.id.drawer_view);
-        drawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-        }
+                drawerLayout = findViewById(R.id.drawer_view);
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            }
         });
 
-        //=====================================♥♥♥♥♥요기까징♥♥♥♥♥
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -178,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
                                     Manifest.permission.ACCESS_FINE_LOCATION, false);
                             Boolean coarseLocationGranted = result.getOrDefault(
                                     Manifest.permission.ACCESS_COARSE_LOCATION, false);
-
                             if (fineLocationGranted != null && fineLocationGranted) {
                                 // Precise location access granted.
                             } else if (coarseLocationGranted != null && coarseLocationGranted) {
@@ -186,21 +179,20 @@ public class MainActivity extends AppCompatActivity {
                             } else {
                                 // No location access granted.
                                 Toast.makeText(this, "GPS 권한 요청이 거부되었습니다.", Toast.LENGTH_SHORT).show();
-
                             }
                         }
                 );
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-
             locationPermissionRequest.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
             });
-
-        } else {
+        }
+        else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
@@ -219,32 +211,60 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_myLocation).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //getMyLocation();
+                getMyLocation();
                 //tMapView.setTrackingMode(true);
-
-                if(tMapView.getIsCompass())
-                    tMapView.setCompassMode(false);
-                else
-                    tMapView.setCompassMode(true);
+                tMapView.setCompassMode(!tMapView.getIsCompass());
             }
         });
 
         findViewById(R.id.btn_max).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tMapView.setZoomLevel(tMapView.getZoomLevel()+1);
+                tMapView.setZoomLevel(tMapView.getZoomLevel() + 1);
             }
         });
 
         findViewById(R.id.btn_min).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tMapView.setZoomLevel(tMapView.getZoomLevel()-1);
+                tMapView.setZoomLevel(tMapView.getZoomLevel() - 1);
             }
         });
 
-
     } // end of onCreate()
+
+    private final ValueEventListener valueEventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot snapshot) {
+            Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
+            for (DataSnapshot dataSnapshot: snapshot.getChildren()) {
+
+                int a=0;
+                //GwangjinStreetLight gwangjinStreetLight = snapshot.getValue(GwangjinStreetLight.class);
+                System.out.println(dataSnapshot.getValue());/*
+                double lat = gwangjinStreetLight.getLatitude();      // 위도
+                double lon = gwangjinStreetLight.getLongitude();     // 경도
+
+                // TMapPoint
+                TMapPoint tMapPoint = new TMapPoint(lat, lon);
+                TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
+
+                tMapMarkerItem.setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용
+                tMapMarkerItem.setPosition(0.5f, 1.0f);  // Marker img의 position
+                tMapMarkerItem.setTMapPoint(tMapPoint);         // Marker의 위치
+
+                // add Marker on T Map View
+                // id로 Marker을 식별
+                tMapView.addMarkerItem("gjStreetLightsLocation" + a, tMapMarkerItem);
+                a++;*/
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+
+        }
+    };
 
     public void getMyLocation() {
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -279,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
             Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);
 
             TextView textView = findViewById(R.id.tv_search_address);
-            textView.setText("위도: "+latitude+"경도: "+longitude);
+            textView.setText("위도: " + latitude + "경도: " + longitude);
             //출발지 마커
             tMapMarkerItem.setIcon(bitmap_start); // 마커 아이콘 지정
             tMapMarkerItem.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
@@ -289,55 +309,9 @@ public class MainActivity extends AppCompatActivity {
             tMapView.setCenterPoint(tMapPointStart.getLongitude(), tMapPointStart.getLatitude());
         }
     };
-    /*
-    // <<---가로등--->>
-    public List<GwangjinStreetLight> initLoadStreetDatabase() {
-        DatabaseHelper databaseHelper = new DatabaseHelper(getApplicationContext());
-        databaseHelper.OpenDatabaseFile();
-
-        List<GwangjinStreetLight> gjStreetLightsList = databaseHelper.getTableData();
-        Log.e("test", String.valueOf(gjStreetLightsList.size()));
-
-        databaseHelper.close();
-        return gjStreetLightsList;
-    }
-
-    public void addStreetLightMarker(List<GwangjinStreetLight> gjStreetLightsList) {
-
-        // Marker img -> bitmap
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
-
-        for (int i = 0; i < gjStreetLightsList.size(); i++) {
-            double lat = gjStreetLightsList.get(i).latitude;      // 위도
-            double lon = gjStreetLightsList.get(i).longitude;     // 경도
-
-            // TMapPoint
-            TMapPoint tMapPoint = new TMapPoint(lat, lon);
-
-            // TMapMarkerItem
-            // Marker Initial Settings
-            TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
-            tMapMarkerItem.setIcon(bitmap);                 // bitmap를 Marker icon으로 사용
-            tMapMarkerItem.setPosition(0.5f, 1.0f);  // Marker img의 position
-            tMapMarkerItem.setTMapPoint(tMapPoint);         // Marker의 위치
-
-            // add Marker on T Map View
-            // id로 Marker을 식별
-            tMapView.addMarkerItem("gjStreetLightsLocation" + i, tMapMarkerItem);
-        } //*/
-
-    //좌표
-//        TMapPoint tpoint1 = new TMapPoint(37.570841, 126.985302);
-//        double katech_x1= tpoint1.getKatechLat();
-//        double katech_y1 = tpoint1.getKatechLon();
-//
-//        TMapPoint tpoint2 = new TMapPoint(37.566385, 126.984098);
-//        double katech_x2= tpoint2.getKatechLat();
-//        double katech_y2 = tpoint2.getKatechLon();
-
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.drawer_menu, menu);
         return true;
     }

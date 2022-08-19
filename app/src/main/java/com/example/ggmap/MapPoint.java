@@ -16,7 +16,6 @@ public class MapPoint {
             this.longitude = longitude;
         }
 
-
         public String getName() {
             return Name;
         }

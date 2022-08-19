@@ -19,8 +19,6 @@ public class SearchPathActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search_path);
 
 
-
-
         findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

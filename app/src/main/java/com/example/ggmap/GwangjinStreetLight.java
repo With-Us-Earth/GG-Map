@@ -1,9 +1,15 @@
 package com.example.ggmap;
 
 public class GwangjinStreetLight {
-    public String name;
-    public double latitude;
-    public double longitude;
+    private String name;
+    private double latitude;
+    private double longitude;
+
+    public GwangjinStreetLight(String name, double latitude, double longitude){
+        this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
 
     // set function
     public void setLatitude(double latitude){ this.latitude = latitude; }

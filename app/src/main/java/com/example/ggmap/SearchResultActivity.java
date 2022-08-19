@@ -49,7 +49,6 @@ public class SearchResultActivity extends AppCompatActivity {
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
         tMapView.setZoomLevel(15);
 
-
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
@@ -86,7 +85,7 @@ public class SearchResultActivity extends AppCompatActivity {
 
                     markerItems.get(i).setCanShowCallout(true);
                     markerItems.get(i).setCalloutTitle(item.getPOIName());
-                    tMapView.addMarkerItem("searchItem" + Integer.toString(i), markerItems.get(i)); // 지도에 마커 추가
+                    tMapView.addMarkerItem("searchItem" + i, markerItems.get(i)); // 지도에 마커 추가
 
                     //출발지 선택
                     Button startSetBtn = (Button) findViewById(R.id.btn_set_start);
