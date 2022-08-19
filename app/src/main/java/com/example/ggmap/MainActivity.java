@@ -128,22 +128,33 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-/*
+        //=================================♥♥♥♥♥요기부터♥♥♥♥♥
+
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-/*
-                switch (item.getItemId()){
-                    case R.id.item_sujeong:
-                        break;
-                }*/
 
-        //drawerLayout = findViewById(R.id.drawer_view);
-        //drawerLayout.closeDrawer(GravityCompat.START);
-        //return true;
-        //}
-        //});
+                switch (item.getItemId()){
+                    case R.id.human_check_tap:
+                        //인적 확인 탭
+                        findViewById(R.id.human_check_tap).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent intent = new Intent(getApplicationContext(), HumanCheckActivity.class);
+                                startActivity(intent);
+                            }
+                        });
+                        break;
+                }
+
+        drawerLayout = findViewById(R.id.drawer_view);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+        }
+        });
+
+        //=====================================♥♥♥♥♥요기까징♥♥♥♥♥
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 

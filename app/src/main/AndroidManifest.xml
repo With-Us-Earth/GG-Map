@@ -39,6 +39,9 @@
         <activity android:name=".SearchPathResultActivity" android:exported="true">
 
         </activity>
+        <activity android:name=".HumanCheckActivity" android:exported="true">
+
+        </activity>
     </application>
 
 </manifest>
