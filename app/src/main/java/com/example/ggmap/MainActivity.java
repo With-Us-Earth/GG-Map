@@ -74,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
     private TMapView tMapView;
     private LocationManager locationManager;
     private ActivityResultLauncher<String[]> locationPermissionRequest;
+    private boolean lightButton = false;
+    private final ArrayList<GwangjinStreetLight> gwangjinStreetLightArrayList = new ArrayList<>();
+    private final ArrayList<TMapMarkerItem> markerLightItems = new ArrayList<>();
+
 
     boolean keep = true;
     private final Runnable runner = new Runnable() {
@@ -191,8 +195,7 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
             });
-        }
-        else {
+        } else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
@@ -231,32 +234,51 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.btn_light).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int a = 0;
+                Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
+
+                if (lightButton) {
+                    lightButton = false;
+                    for (GwangjinStreetLight gwangjinStreetLight : gwangjinStreetLightArrayList) {
+                        markerLightItems.clear();
+                        tMapView.removeMarkerItem("gjStreetLightsLocation" + a);
+                        a++;
+                    }
+                } else {
+                    lightButton = true;
+                    for (GwangjinStreetLight gwangjinStreetLight : gwangjinStreetLightArrayList) {
+                        double lat = gwangjinStreetLight.getLatitude();      // 위도
+                        double lon = gwangjinStreetLight.getLongitude();     // 경도
+
+                        // TMapPoint
+                        markerLightItems.add(new TMapMarkerItem());
+                        TMapPoint tMapPoint = new TMapPoint(lat, lon);
+
+                        markerLightItems.get(a).setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용
+                        markerLightItems.get(a).setPosition(0.5f, 1.0f);  // Marker img의 position
+                        markerLightItems.get(a).setTMapPoint(tMapPoint);         // Marker의 위치
+
+                        // id로 Marker을 식별
+                        tMapView.addMarkerItem("gjStreetLightsLocation" + a, markerLightItems.get(a));
+                        a++;
+                    }
+                }
+            }
+        });
+
+
     } // end of onCreate()
 
     private final ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot snapshot) {
-            Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
-            for (DataSnapshot dataSnapshot: snapshot.getChildren()) {
-
-                int a=0;
-                //GwangjinStreetLight gwangjinStreetLight = snapshot.getValue(GwangjinStreetLight.class);
-                System.out.println(dataSnapshot.getValue());/*
-                double lat = gwangjinStreetLight.getLatitude();      // 위도
-                double lon = gwangjinStreetLight.getLongitude();     // 경도
-
-                // TMapPoint
-                TMapPoint tMapPoint = new TMapPoint(lat, lon);
-                TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
-
-                tMapMarkerItem.setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용
-                tMapMarkerItem.setPosition(0.5f, 1.0f);  // Marker img의 position
-                tMapMarkerItem.setTMapPoint(tMapPoint);         // Marker의 위치
-
-                // add Marker on T Map View
-                // id로 Marker을 식별
-                tMapView.addMarkerItem("gjStreetLightsLocation" + a, tMapMarkerItem);
-                a++;*/
+            int a = 0;
+            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                GwangjinStreetLight gwangjinStreetLight = dataSnapshot.getValue(GwangjinStreetLight.class);
+                gwangjinStreetLightArrayList.add(gwangjinStreetLight);
             }
         }
 
@@ -278,7 +300,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
-
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
             }
