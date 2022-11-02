@@ -190,15 +190,15 @@ public class SearchResultActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     try {
-//                                        TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
-//                                        tMapPolyLine1.setLineColor(Color.BLUE);
-//                                        tMapPolyLine1.setLineWidth(20);
-//                                        tMapPolyLine1.setOutLineWidth(20);
-//                                        tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
-//                                        tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
-//                                        tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
+                                        TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
+                                        tMapPolyLine1.setLineColor(Color.BLUE);
+                                        tMapPolyLine1.setLineWidth(20);
+                                        tMapPolyLine1.setOutLineWidth(20);
+                                        tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
+                                        tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
+                                        tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
 
-                                        TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 2);
+                                        TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 4);
                                         tMapPolyLine.setLineColor(Color.RED);
                                         tMapPolyLine.setLineWidth(20);
                                         tMapPolyLine.setOutLineWidth(20);
