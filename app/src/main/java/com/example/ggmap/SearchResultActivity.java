@@ -25,11 +25,13 @@ import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapMarkerItem;
 import com.skt.Tmap.TMapPoint;
 import com.skt.Tmap.TMapPolyLine;
+import com.skt.Tmap.TMapTapi;
 import com.skt.Tmap.TMapView;
 import com.skt.Tmap.poi_item.TMapPOIItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class SearchResultActivity extends AppCompatActivity {
     private TMapView tMapView;
@@ -37,6 +39,9 @@ public class SearchResultActivity extends AppCompatActivity {
     private TMapPoint tMapPoint;
     public static TMapPoint tMapPointStart;
     public static TMapPoint tMapPointEnd;
+
+    public static TMapPoint passListPoint;
+    public static ArrayList<TMapPoint> passList = new ArrayList<>();
 
 
     @Override
@@ -86,6 +91,7 @@ public class SearchResultActivity extends AppCompatActivity {
                     markerItems.get(i).setCanShowCallout(true);
                     markerItems.get(i).setCalloutTitle(item.getPOIName());
                     tMapView.addMarkerItem("searchItem" + i, markerItems.get(i)); // 지도에 마커 추가
+
 
                     //출발지 선택
                     Button startSetBtn = (Button) findViewById(R.id.btn_set_start);
@@ -151,6 +157,7 @@ public class SearchResultActivity extends AppCompatActivity {
                                     tMapPointEnd = new TMapPoint(end_lat, end_lon);
                                     Toast.makeText(SearchResultActivity.this, "도착지로 설정되었습니다.", Toast.LENGTH_LONG).show();
 
+
                                     //마커 생성
                                     TMapMarkerItem markerItem_end = new TMapMarkerItem();
 
@@ -174,29 +181,44 @@ public class SearchResultActivity extends AppCompatActivity {
                             //목적지로 지도 이동
                             tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
 
+                            //경유지
+                            passListPoint = new TMapPoint(37.591620,127.019373);
+                            passList.add(passListPoint);
+
                             //보행자 경로로 PolyLine 띄우기
                             new Thread() {
                                 @Override
                                 public void run() {
                                     try {
-                                        TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
-                                        tMapPolyLine.setLineColor(Color.BLUE);
-                                        tMapPolyLine.setLineWidth(20);
-                                        tMapPolyLine.setOutLineWidth(20);
-                                        tMapPolyLine.setLineColor(Color.parseColor("#3094ff"));
-                                        tMapPolyLine.setOutLineColor(Color.parseColor("#002247"));
-                                        tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine);
+                                        TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
+                                        tMapPolyLine1.setLineColor(Color.BLUE);
+                                        tMapPolyLine1.setLineWidth(20);
+                                        tMapPolyLine1.setOutLineWidth(20);
+                                        tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
+                                        tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
+                                        tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
 
-                                    } catch (Exception e) {
+                                        TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 4);
+                                        tMapPolyLine.setLineColor(Color.RED);
+                                        tMapPolyLine.setLineWidth(10);
+                                        tMapPolyLine.setOutLineWidth(10);
+                                        tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
+                                        tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
+                                        tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
+
+                                   } catch (Exception e) {
                                         e.printStackTrace();
                                     }
+
                                 }
                             }.start();
                         }
+
                     });
                 }
                 tMapView.setCenterPoint(tMapPoint.getLongitude(),tMapPoint.getLatitude());
             }
+
         });
 
         findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
@@ -213,6 +235,6 @@ public class SearchResultActivity extends AppCompatActivity {
             }
         });
 
-
     }
+
 }
