@@ -200,8 +200,8 @@ public class SearchResultActivity extends AppCompatActivity {
 
                                         TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 4);
                                         tMapPolyLine.setLineColor(Color.RED);
-                                        tMapPolyLine.setLineWidth(20);
-                                        tMapPolyLine.setOutLineWidth(20);
+                                        tMapPolyLine.setLineWidth(10);
+                                        tMapPolyLine.setOutLineWidth(10);
                                         tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
                                         tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
                                         tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
