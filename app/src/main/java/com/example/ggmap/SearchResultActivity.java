@@ -6,34 +6,37 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapMarkerItem;
 import com.skt.Tmap.TMapPoint;
 import com.skt.Tmap.TMapPolyLine;
-import com.skt.Tmap.TMapTapi;
 import com.skt.Tmap.TMapView;
 import com.skt.Tmap.poi_item.TMapPOIItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Observable;
 
-public class SearchResultActivity extends AppCompatActivity {
+public class SearchResultActivity<start_lat> extends AppCompatActivity {
     private TMapView tMapView;
     private ArrayList<TMapMarkerItem> markerItems = new ArrayList<>();
     private TMapPoint tMapPoint;
@@ -42,6 +45,9 @@ public class SearchResultActivity extends AppCompatActivity {
 
     public static TMapPoint passListPoint;
     public static ArrayList<TMapPoint> passList = new ArrayList<>();
+
+    public static HashMap<String, Object> locationMap = new HashMap<>();
+    HashMap<String, HashMap<String, Object>> camMap = new HashMap<>();
 
 
     @Override
@@ -181,9 +187,72 @@ public class SearchResultActivity extends AppCompatActivity {
                             //목적지로 지도 이동
                             tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
 
+                            double startLat = tMapPointStart.getLatitude();
+                            double startLong = tMapPointStart.getLatitude();
+
+                            double endLat = tMapPointEnd.getLatitude();
+                            double endLong = tMapPointEnd.getLongitude();
+
+                            //출발지 목적지 좌표 비교
+                            double bigLat = Math.max(startLat, endLat);
+                            double smallLat = Math.min(startLat, endLat);
+                            double bigLong = Math.max(startLong, endLong);
+                            double smallLong = Math.min(startLong, endLong);
+
+                            FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
+                            firebaseDatabase.getReference().child("location").addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    String camID = snapshot.getKey();
+                                    if(snapshot.child(camID).getValue(Camera.class)!=null){
+                                        Camera camera = snapshot.getValue(Camera.class);
+                                        double lat = camera.getLatitude();
+
+                                        if ((smallLat - 0.08) <= lat && lat <= (bigLat + 0.08)){
+                                            double lon = camera.getLongitude();
+                                            if (lon >= (smallLong - 0.08) && lon <= (bigLong + 0.08)){
+
+                                                String camKey = camera.getKey();
+
+                                                firebaseDatabase.getReference().child("person").addValueEventListener(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        int num = (int) snapshot.child(camKey).getValue();
+                                                        if (num >=5){
+                                                            TMapPoint PassListP;
+                                                            PassListP = new TMapPoint(lat, lon);
+                                                            passList.add(PassListP);
+                                                            System.out.println(camKey);
+                                                        }
+
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                                    }
+                                                });
+
+                                            }
+
+
+
+
+                                        }
+
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
+
+
                             //경유지
-                            passListPoint = new TMapPoint(37.591620,127.019373);
-                            passList.add(passListPoint);
+                            //passListPoint = new TMapPoint(37.592095,127.018353);
+                            //passList.add(passListPoint);
 
                             //보행자 경로로 PolyLine 띄우기
                             new Thread() {
@@ -200,13 +269,19 @@ public class SearchResultActivity extends AppCompatActivity {
 
                                         TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 4);
                                         tMapPolyLine.setLineColor(Color.RED);
+                                        for (int i = 0; i < passList.size();i++)
+                                        {
+                                            System.out.println(passList.get(i).getLatitude());
+                                        }
                                         tMapPolyLine.setLineWidth(10);
                                         tMapPolyLine.setOutLineWidth(10);
                                         tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
                                         tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
                                         tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
 
-                                   } catch (Exception e) {
+
+
+                                    } catch (Exception e) {
                                         e.printStackTrace();
                                     }
 
