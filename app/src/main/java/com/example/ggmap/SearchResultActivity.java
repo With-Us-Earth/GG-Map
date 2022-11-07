@@ -21,6 +21,7 @@ import androidx.core.splashscreen.SplashScreen;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.skt.Tmap.TMapData;
@@ -45,9 +46,9 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
     public static TMapPoint passListPoint;
     public static ArrayList<TMapPoint> passList = new ArrayList<>();
+    public static ArrayList<Camera> cameraList = new ArrayList<>();
+    public static ArrayList<String> keyList = new ArrayList<>();
 
-    public static HashMap<String, Object> locationMap = new HashMap<>();
-    HashMap<String, HashMap<String, Object>> camMap = new HashMap<>();
 
 
     @Override
@@ -180,6 +181,9 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                         }
                     });
 
+
+
+
                     //길찾기 버튼
                     ImageButton streetfindBtn = (ImageButton) findViewById(R.id.btn_streetfind);
                     streetfindBtn.setOnClickListener(new View.OnClickListener() {
@@ -200,93 +204,129 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                             double smallLong = Math.min(startLong, endLong);
 
                             FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
-                            firebaseDatabase.getReference().child("location").addValueEventListener(new ValueEventListener() {
+                            firebaseDatabase.getReference("location").addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    String camID = snapshot.getKey();
-                                    if(snapshot.child(camID).getValue(Camera.class)!=null){
-                                        Camera camera = snapshot.getValue(Camera.class);
-                                        double lat = camera.getLatitude();
 
-                                        if ((smallLat - 0.08) <= lat && lat <= (bigLat + 0.08)){
-                                            double lon = camera.getLongitude();
-                                            if (lon >= (smallLong - 0.08) && lon <= (bigLong + 0.08)){
+                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                        Camera camera = dataSnapshot.getValue(Camera.class);
+                                        String key = camera.getKey();
+                                        Double lat = camera.getLatitude();
 
-                                                String camKey = camera.getKey();
+                                        cameraList.add(camera);
 
-                                                firebaseDatabase.getReference().child("person").addValueEventListener(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                        int num = (int) snapshot.child(camKey).getValue();
-                                                        if (num >=5){
-                                                            TMapPoint PassListP;
-                                                            PassListP = new TMapPoint(lat, lon);
-                                                            passList.add(PassListP);
-                                                            System.out.println(camKey);
+                                    }
+                                    for(Camera s : cameraList) {
+                                        double lat = s.getLatitude();
+                                        double lon = s.getLongitude();
+
+                                        if ((smallLat - 0.08) <= lat && lat <= (bigLat + 0.08)) {
+                                            if (lon >= (smallLong - 0.08) && lon <= (bigLong + 0.08)) {
+                                                String key = s.getKey();
+                                                keyList.add(key);
+                                                System.out.println(key);
+
+
+
+                                            }
+                                        }
+                                    }
+
+                                    firebaseDatabase.getReference("person").addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+
+                                                String getKey = dataSnapshot.getKey();
+
+                                                for (String key : keyList){
+                                                    if(getKey.equals(key)){
+                                                        String n1 = dataSnapshot.getValue(String.class);
+                                                        int num = Integer.parseInt(n1);
+                                                        System.out.println(n1);
+
+                                                        if (num >= 5) {
+                                                            for (Camera n : cameraList){
+                                                                String s = n.getKey();
+                                                                if (s.equals(getKey)){
+                                                                    double finalLon = n.getLongitude();
+                                                                    double finalLat = n.getLatitude();
+
+
+                                                                    passListPoint = new TMapPoint(finalLat, finalLon);
+                                                                    passList.add(passListPoint);
+
+                                                                }
+                                                            }
+
                                                         }
 
-                                                    }
-
-                                                    @Override
-                                                    public void onCancelled(@NonNull DatabaseError error) {
 
                                                     }
-                                                });
+
+                                                }
+
 
                                             }
 
 
-
-
                                         }
 
-                                    }
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                        }
+                                    });
+
+                                    //보행자 경로로 PolyLine 띄우기
+                                    new Thread() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
+                                                tMapPolyLine1.setLineColor(Color.BLUE);
+                                                tMapPolyLine1.setLineWidth(20);
+                                                tMapPolyLine1.setOutLineWidth(20);
+                                                tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
+                                                tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
+                                                tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
+
+                                                TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 10);
+                                                tMapPolyLine.setLineColor(Color.RED);
+                                                if(passList.size() == 0) {
+                                                    System.out.println("비어있음!!");
+                                                } else {
+                                                    System.out.println("안에있음@@");
+                                                }
+                                                tMapPolyLine.setLineWidth(10);
+                                                tMapPolyLine.setOutLineWidth(10);
+                                                tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
+                                                tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
+                                                tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
+
+
+
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+
+                                        }
+                                    }.start();
+
                                 }
+
+
 
                                 @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
+                                public void onCancelled(@NonNull DatabaseError databaseError){
 
                                 }
+
                             });
 
 
-                            //경유지
-                            //passListPoint = new TMapPoint(37.592095,127.018353);
-                            //passList.add(passListPoint);
 
-                            //보행자 경로로 PolyLine 띄우기
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
-                                        tMapPolyLine1.setLineColor(Color.BLUE);
-                                        tMapPolyLine1.setLineWidth(20);
-                                        tMapPolyLine1.setOutLineWidth(20);
-                                        tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
-                                        tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
-                                        tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
-
-                                        TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 4);
-                                        tMapPolyLine.setLineColor(Color.RED);
-                                        for (int i = 0; i < passList.size();i++)
-                                        {
-                                            System.out.println(passList.get(i).getLatitude());
-                                        }
-                                        tMapPolyLine.setLineWidth(10);
-                                        tMapPolyLine.setOutLineWidth(10);
-                                        tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
-                                        tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
-                                        tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
-
-
-
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-                            }.start();
                         }
 
                     });
