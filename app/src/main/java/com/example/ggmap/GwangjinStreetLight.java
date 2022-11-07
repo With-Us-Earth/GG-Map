@@ -5,6 +5,10 @@ public class GwangjinStreetLight {
     private double latitude;
     private double longitude;
 
+    public GwangjinStreetLight(){
+
+    }
+
     public GwangjinStreetLight(String name, double latitude, double longitude){
         this.name = name;
         this.latitude = latitude;

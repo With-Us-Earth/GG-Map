@@ -55,6 +55,13 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.ll_myLocation).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //위치 받아오기
+            }
+        });
+
 
         findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
             @Override
