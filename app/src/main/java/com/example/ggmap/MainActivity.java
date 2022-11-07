@@ -75,6 +75,10 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
     private ActivityResultLauncher<String[]> locationPermissionRequest;
 
+    private TMapPoint tMapPoint;
+    public static TMapPoint startPoint;
+    public static TMapPoint endPoint;
+
     boolean keep = true;
     private final Runnable runner = new Runnable() {
         @Override
@@ -123,6 +127,41 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
                 drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+
+        //길 인적 Polyline
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
+        firebaseDatabase.getReference().child("location").addValueEventListener(new ValueEventListener() {            // 여기 데베 수정
+            @Override
+            public void onDataChange(@NonNull DataSnapshot datasnapshot) {
+                //보행자 경로로 PolyLine 띄우기
+                startPoint = new TMapPoint(37.591620,127.019373);  // 위에 데베 수정해야 여기를 어떻게 손 볼 수 있을 거 같은데
+                endPoint = new TMapPoint(37.591620,127.019373);
+
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            TMapPolyLine tMapPolyLineG = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startPoint, endPoint);
+                            tMapPolyLineG.setLineColor(Color.GREEN);
+                            tMapPolyLineG.setLineWidth(20);
+                            tMapPolyLineG.setOutLineWidth(20);
+                            tMapPolyLineG.setLineColor(Color.parseColor("#00800"));
+                            tMapPolyLineG.setOutLineColor(Color.parseColor("#00800"));
+                            tMapView.addTMapPolyLine("PolyLine_street", tMapPolyLineG);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }.start();
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError){
             }
         });
 
