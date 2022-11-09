@@ -7,9 +7,11 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,6 +66,11 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
+        TextView safteyDistance = findViewById(R.id.saftey_distance);
+        TextView safteyTime = findViewById(R.id.saftey_time);
+        TextView shortestTime = findViewById(R.id.shortest_time);
+        TextView shortestDistance = findViewById(R.id.shortest_distance);
+
         Intent receiveIntent = getIntent();
         String address = receiveIntent.getStringExtra("address");
 
@@ -98,6 +105,8 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                     markerItems.get(i).setCanShowCallout(true);
                     markerItems.get(i).setCalloutTitle(item.getPOIName());
                     tMapView.addMarkerItem("searchItem" + i, markerItems.get(i)); // 지도에 마커 추가
+
+                    
 
 
                     //출발지 선택
@@ -210,8 +219,6 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
                                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                         Camera camera = dataSnapshot.getValue(Camera.class);
-                                        String key = camera.getKey();
-                                        Double lat = camera.getLatitude();
 
                                         cameraList.add(camera);
 
@@ -219,9 +226,15 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                     for(Camera s : cameraList) {
                                         double lat = s.getLatitude();
                                         double lon = s.getLongitude();
+                                        double newSmallLat = smallLat - 0.0005;
+                                        double newBigLat = bigLat + 0.0005;
+                                        double newSmallLong = smallLong + 0.0005;
+                                        double newBigLong = bigLong+ 0.0005;
 
-                                        if ((smallLat - 0.08) <= lat && lat <= (bigLat + 0.08)) {
-                                            if (lon >= (smallLong - 0.08) && lon <= (bigLong + 0.08)) {
+                                        if (newSmallLat <= lat && lat <= newBigLat) {
+
+                                            System.out.println(lat);
+                                            if (lon >= newSmallLong && lon <= newBigLong) {
                                                 String key = s.getKey();
                                                 keyList.add(key);
                                                 System.out.println(key);
@@ -229,6 +242,12 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
 
                                             }
+                                            else {
+                                                System.out.println("이건 안됨");
+                                            }
+                                        }
+                                        else {
+                                            System.out.println("이건안됨");
                                         }
                                     }
 
@@ -244,14 +263,15 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                     if(getKey.equals(key)){
                                                         String n1 = dataSnapshot.getValue(String.class);
                                                         int num = Integer.parseInt(n1);
-                                                        System.out.println(n1);
+
 
                                                         if (num >= 5) {
                                                             for (Camera n : cameraList){
                                                                 String s = n.getKey();
-                                                                if (s.equals(getKey)){
+                                                                if (s.equals(key)){
                                                                     double finalLon = n.getLongitude();
                                                                     double finalLat = n.getLatitude();
+                                                                    System.out.println("+++++++"+finalLat);
 
 
                                                                     passListPoint = new TMapPoint(finalLat, finalLon);
@@ -292,6 +312,10 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                 tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
                                                 tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
 
+                                                double Distance = tMapPolyLine1.getDistance();
+                                                System.out.println(Distance);
+
+
                                                 TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 10);
                                                 tMapPolyLine.setLineColor(Color.RED);
                                                 if(passList.size() == 0) {
@@ -304,6 +328,37 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                 tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
                                                 tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
                                                 tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
+
+                                                double Distance2 = tMapPolyLine.getDistance();
+                                                System.out.println(Distance2);
+
+
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        shortestDistance.setText((int) Math.round(Distance) + "m");
+                                                        safteyDistance.setText((int) Math.round(Distance2) + "m");
+
+                                                        findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(View view) {
+                                                                tMapView.removeAllTMapPolyLine();
+                                                                tMapView.addTMapPolyLine("saftey", tMapPolyLine1);
+
+
+                                                            }
+                                                        });
+
+                                                        findViewById(R.id.shortest_distance_btn).setOnClickListener(new View.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(View view) {
+                                                                tMapView.removeAllTMapPolyLine();
+                                                                tMapView.addTMapPolyLine("short", tMapPolyLine);
+                                                            }
+                                                        });
+
+                                                    }
+                                                });
 
 
 
@@ -336,10 +391,13 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
         });
 
+
+
         findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
+                passList.clear();
             }
         });
 
@@ -347,6 +405,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 finish();
+                passList.clear();
             }
         });
 
