@@ -203,10 +203,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // 긴급 전화 버튼
+        findViewById(R.id.btn_call).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Intent intent = new Intent(getApplicationContext(), .class);
+                //startActivity(intent);
+            }
+        });
+
         findViewById(R.id.tv_search_address).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                Intent intent = new Intent(getApplicationContext(), NewSearchActivity.class);
                 startActivity(intent);
             }
         });
