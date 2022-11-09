@@ -6,7 +6,7 @@ public class Camera {
     String key;
 
     public double getLatitude() {
-        return latitude;
+        return this.latitude;
     }
 
     public void setLatitude(double latitude) {
@@ -14,7 +14,7 @@ public class Camera {
     }
 
     public double getLongitude() {
-        return longitude;
+        return this.longitude;
     }
 
     public void setLongitude(double longitude) {
@@ -22,7 +22,7 @@ public class Camera {
     }
 
     public String getKey() {
-        return key;
+        return this.key;
     }
 
     public void setKey(String key) {

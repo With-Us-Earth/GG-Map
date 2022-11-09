@@ -66,10 +66,8 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
-        TextView safteyDistance = findViewById(R.id.saftey_distance);
         TextView safteyTime = findViewById(R.id.saftey_time);
         TextView shortestTime = findViewById(R.id.shortest_time);
-        TextView shortestDistance = findViewById(R.id.shortest_distance);
 
         Intent receiveIntent = getIntent();
         String address = receiveIntent.getStringExtra("address");
@@ -336,14 +334,17 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        shortestDistance.setText((int) Math.round(Distance) + "m");
-                                                        safteyDistance.setText((int) Math.round(Distance2) + "m");
+                                                        int a = (int) Math.round(Distance);
+                                                        int b = (int) Math.round(Distance2);
+
+                                                        shortestTime.setText((int) Math.round(a*0.016)+"분\n" +a + "m" );
+                                                        safteyTime.setText((int) Math.round(b*0.016)+"분\n" +b + "m");
 
                                                         findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
                                                             @Override
                                                             public void onClick(View view) {
                                                                 tMapView.removeAllTMapPolyLine();
-                                                                tMapView.addTMapPolyLine("saftey", tMapPolyLine1);
+                                                                tMapView.addTMapPolyLine("saftey", tMapPolyLine);
 
 
                                                             }
@@ -353,7 +354,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                             @Override
                                                             public void onClick(View view) {
                                                                 tMapView.removeAllTMapPolyLine();
-                                                                tMapView.addTMapPolyLine("short", tMapPolyLine);
+                                                                tMapView.addTMapPolyLine("short", tMapPolyLine1);
                                                             }
                                                         });
 
