@@ -28,6 +28,13 @@
         <activity android:name=".SearchActivity" android:exported="true" android:parentActivityName=".MainActivity" >
 
         </activity>
+        <activity android:name=".NewSearchActivity" android:exported="true" android:parentActivityName=".MainActivity" >
+
+        </activity>
+        <activity android:name=".NewSearchResultActivity" android:exported="true" android:parentActivityName=".MainActivity" >
+
+
+        </activity>
         <activity android:name=".SearchResultActivity" android:exported="true">
 
         </activity>
