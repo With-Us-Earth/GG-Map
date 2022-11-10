@@ -10,7 +10,7 @@
 
     app:umanoPanelHeight="70dp"
     app:umanoOverlay="false"
-    app:umanoParallaxOffset="200dp"
+    app:umanoParallaxOffset="0sp"
     android:id="@+id/panelLayout">
 <!--    app:umanoShadowHeight="10dp"-->
     <!-- gravity 를 bottom으로 하면 아래에서 위로 드래그, top으로 하면 위에서 아래로 드래그 할 수 있다.

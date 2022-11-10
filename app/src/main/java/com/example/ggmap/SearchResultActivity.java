@@ -198,6 +198,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                             //목적지로 지도 이동
                             tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
 
+                            //출발지, 목적지 좌표값
                             double startLat = tMapPointStart.getLatitude();
                             double startLong = tMapPointStart.getLatitude();
 
@@ -210,6 +211,8 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                             double bigLong = Math.max(startLong, endLong);
                             double smallLong = Math.min(startLong, endLong);
 
+                            //안심길찾기 경유지 설정
+
                             FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
                             firebaseDatabase.getReference("location").addValueEventListener(new ValueEventListener() {
                                 @Override
@@ -221,6 +224,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                         cameraList.add(camera);
 
                                     }
+                                    //반경 n미터 이내만 불러오기
                                     for(Camera s : cameraList) {
                                         double lat = s.getLatitude();
                                         double lon = s.getLongitude();
@@ -257,12 +261,14 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
                                                 String getKey = dataSnapshot.getKey();
 
+                                                //인적수 가져오기
                                                 for (String key : keyList){
                                                     if(getKey.equals(key)){
                                                         String n1 = dataSnapshot.getValue(String.class);
                                                         int num = Integer.parseInt(n1);
 
 
+                                                        //인적 5이상만 안심길찾기 경로에 넣음
                                                         if (num >= 5) {
                                                             for (Camera n : cameraList){
                                                                 String s = n.getKey();
@@ -302,6 +308,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             try {
+                                                //최단길찾기
                                                 TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
                                                 tMapPolyLine1.setLineColor(Color.BLUE);
                                                 tMapPolyLine1.setLineWidth(20);
@@ -314,6 +321,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                 System.out.println(Distance);
 
 
+                                                //안심길찾기
                                                 TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 10);
                                                 tMapPolyLine.setLineColor(Color.RED);
                                                 if(passList.size() == 0) {
@@ -331,6 +339,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                 System.out.println(Distance2);
 
 
+                                                // 시간, 거리 보여주기
                                                 runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
