@@ -1,5 +1,8 @@
 package com.example.ggmap;
 
+import static com.example.ggmap.SearchResultActivity.tMapPointEnd;
+import static com.example.ggmap.SearchResultActivity.tMapPointStart;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -68,6 +71,7 @@ import com.skt.Tmap.poi_item.TMapPOIItem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.skt.Tmap.TMapMarkerItem;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
