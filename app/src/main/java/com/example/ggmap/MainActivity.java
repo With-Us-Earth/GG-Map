@@ -1,5 +1,8 @@
 package com.example.ggmap;
 
+import static com.example.ggmap.SearchResultActivity.tMapPointEnd;
+import static com.example.ggmap.SearchResultActivity.tMapPointStart;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -68,6 +71,7 @@ import com.skt.Tmap.poi_item.TMapPOIItem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.skt.Tmap.TMapMarkerItem;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
@@ -203,10 +207,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // 긴급 전화 버튼
+        findViewById(R.id.btn_call).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Intent intent = new Intent(getApplicationContext(), .class);
+                //startActivity(intent);
+            }
+        });
+
         findViewById(R.id.tv_search_address).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                Intent intent = new Intent(getApplicationContext(), NewSearchActivity.class);
                 startActivity(intent);
             }
         });
