@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
         //TMap initial
         tMapView = new TMapView(this);
-        tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
+        tMapView.setSKTMapApiKey("l7xx59b89a7b7f8c439c99f5a86b7ec86fc6");
         tMapView.setHttpsMode(true);
         tMapView.setZoomLevel(15);
         tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);

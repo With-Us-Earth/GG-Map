@@ -33,11 +33,17 @@ import com.skt.Tmap.TMapPolyLine;
 import com.skt.Tmap.TMapView;
 import com.skt.Tmap.poi_item.TMapPOIItem;
 
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 public class SearchResultActivity<start_lat> extends AppCompatActivity {
     private TMapView tMapView;
@@ -48,8 +54,11 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
     public static TMapPoint passListPoint;
     public static ArrayList<TMapPoint> passList = new ArrayList<>();
+    public static ArrayList<TMapPoint> passList2 = new ArrayList<>();
     public static ArrayList<Camera> cameraList = new ArrayList<>();
+    public static ArrayList<Double> numList = new ArrayList<>();
     public static ArrayList<String> keyList = new ArrayList<>();
+    public static HashMap<Double, ArrayList<TMapPoint>> finalList = new HashMap<Double, ArrayList<TMapPoint>>();
 
 
 
@@ -60,7 +69,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
         setContentView(R.layout.activity_search_result);
 
         tMapView = new TMapView(this);
-        tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
+        tMapView.setSKTMapApiKey("l7xx59b89a7b7f8c439c99f5a86b7ec86fc6");
         tMapView.setZoomLevel(15);
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
@@ -294,6 +303,141 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
                                             }
 
+                                            ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
+                                            ArrayList<ArrayList<TMapPoint>> haha = new ArrayList<>();
+                                            int a = passList.size();
+                                            System.out.println(a);
+
+                                            for (int inx =1; inx <= a; inx++) {
+                                                pick(a, new ArrayList<Integer>(), inx, result);
+                                            }
+
+
+
+
+                                            for (ArrayList<Integer> arrayList : result) {
+                                                ArrayList<TMapPoint> tlist = new ArrayList<>();
+                                                int size = arrayList.size();
+
+                                                for (int b = 0; b < size; b++){
+                                                    int num = arrayList.get(b);
+                                                    TMapPoint point = passList.get(num);
+
+                                                    tlist.add(point);
+                                                }
+                                                haha.add(tlist);
+                                                System.out.println("00"+ arrayList);
+                                            }
+
+
+                                                new Thread(){
+                                                    @Override
+                                                    public void run() {
+                                                        try {
+
+                                                            for(ArrayList<TMapPoint> m : haha){
+
+                                                                System.out.println("====="+m);
+                                                                TMapPolyLine line = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, m, 0);
+                                                                //tMapView.addTMapPolyLine("line", line);
+
+                                                                double a2 = line.getDistance();
+                                                                System.out.println(a2);
+                                                                if (a2 != 0.0){
+                                                                    finalList.put(a2, m);
+                                                                    numList.add(a2);
+                                                                    Thread.sleep(500);
+                                                                }
+                                                                //tMapView.removeAllTMapPolyLine();
+
+                                                            }
+
+
+                                                            Double minNum = Collections.min(numList);
+                                                            System.out.println(minNum);
+                                                            passList2 = finalList.get(minNum);
+
+                                                            TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
+                                                            tMapPolyLine1.setLineColor(Color.BLUE);
+                                                            tMapPolyLine1.setLineWidth(20);
+                                                            tMapPolyLine1.setOutLineWidth(20);
+                                                            tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
+                                                            tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
+                                                            tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
+
+                                                            double Distance = tMapPolyLine1.getDistance();
+                                                            Thread.sleep(500);
+
+
+
+
+                                                            //안심길찾기
+                                                            TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList2, 0);
+                                                            tMapPolyLine.setLineColor(Color.RED);
+                                                            if(passList2.size() == 0) {
+                                                                System.out.println("비어있음!!");
+                                                            } else {
+                                                                System.out.println("안에있음@@");
+                                                            }
+                                                            tMapPolyLine.setLineWidth(10);
+                                                            tMapPolyLine.setOutLineWidth(10);
+                                                            tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
+                                                            tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
+                                                            tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
+
+                                                            double Distance2 = tMapPolyLine.getDistance();
+
+
+
+                                                            // 시간, 거리 보여주기
+                                                            runOnUiThread(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    int a = (int) Math.round(Distance);
+                                                                    int b = (int) Math.round(Distance2);
+
+                                                                    shortestTime.setText((int) Math.round(a*0.016)+"분\n" +a + "m" );
+                                                                    safteyTime.setText((int) Math.round(b*0.016)+"분\n" +b + "m");
+
+                                                                    findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View view) {
+                                                                            tMapView.removeAllTMapPolyLine();
+                                                                            tMapView.addTMapPolyLine("saftey", tMapPolyLine);
+
+
+                                                                        }
+                                                                    });
+
+                                                                    findViewById(R.id.shortest_distance_btn).setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View view) {
+                                                                            tMapView.removeAllTMapPolyLine();
+                                                                            tMapView.addTMapPolyLine("short", tMapPolyLine1);
+                                                                        }
+                                                                    });
+
+                                                                }
+                                                            });
+
+
+
+                                                        } catch (IOException | ParserConfigurationException | SAXException | InterruptedException e) {
+                                                            e.printStackTrace();
+                                                        }
+
+                                                    }
+                                                }.start();
+
+
+
+
+
+
+
+
+
+
 
                                         }
 
@@ -303,72 +447,16 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                         }
                                     });
 
+
+
+
                                     //보행자 경로로 PolyLine 띄우기
                                     new Thread() {
                                         @Override
                                         public void run() {
                                             try {
                                                 //최단길찾기
-                                                TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
-                                                tMapPolyLine1.setLineColor(Color.BLUE);
-                                                tMapPolyLine1.setLineWidth(20);
-                                                tMapPolyLine1.setOutLineWidth(20);
-                                                tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
-                                                tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
-                                                tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
 
-                                                double Distance = tMapPolyLine1.getDistance();
-                                                System.out.println(Distance);
-
-
-                                                //안심길찾기
-                                                TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList, 10);
-                                                tMapPolyLine.setLineColor(Color.RED);
-                                                if(passList.size() == 0) {
-                                                    System.out.println("비어있음!!");
-                                                } else {
-                                                    System.out.println("안에있음@@");
-                                                }
-                                                tMapPolyLine.setLineWidth(10);
-                                                tMapPolyLine.setOutLineWidth(10);
-                                                tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
-                                                tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
-                                                tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
-
-                                                double Distance2 = tMapPolyLine.getDistance();
-                                                System.out.println(Distance2);
-
-
-                                                // 시간, 거리 보여주기
-                                                runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        int a = (int) Math.round(Distance);
-                                                        int b = (int) Math.round(Distance2);
-
-                                                        shortestTime.setText((int) Math.round(a*0.016)+"분\n" +a + "m" );
-                                                        safteyTime.setText((int) Math.round(b*0.016)+"분\n" +b + "m");
-
-                                                        findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View view) {
-                                                                tMapView.removeAllTMapPolyLine();
-                                                                tMapView.addTMapPolyLine("saftey", tMapPolyLine);
-
-
-                                                            }
-                                                        });
-
-                                                        findViewById(R.id.shortest_distance_btn).setOnClickListener(new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View view) {
-                                                                tMapView.removeAllTMapPolyLine();
-                                                                tMapView.addTMapPolyLine("short", tMapPolyLine1);
-                                                            }
-                                                        });
-
-                                                    }
-                                                });
 
 
 
@@ -403,6 +491,8 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
 
 
+
+
         findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -419,6 +509,24 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
             }
         });
 
+    }
+
+
+    private static void pick(int n, ArrayList<Integer> picked, int toPick, ArrayList<ArrayList<Integer>> collection) {
+
+        if (toPick == 0) {
+            //System.out.println(picked);
+            collection.add(picked);
+            return;
+        }
+
+        int smallest = picked.isEmpty() ? 0 : picked.get(picked.size() - 1) + 1;
+
+        for (int next = smallest; next < n; next++) {
+            picked.add(next);
+            pick(n, new ArrayList<Integer>(picked), toPick - 1, collection);
+            picked.remove(picked.size() - 1);
+        }
     }
 
 }
