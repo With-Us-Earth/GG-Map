@@ -17,11 +17,16 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapMarkerItem;
 import com.skt.Tmap.TMapPoint;
@@ -43,7 +48,11 @@ public class NewSearchResultActivity extends AppCompatActivity {
 
     public static TMapPoint passListPoint;
     public static ArrayList<TMapPoint> passList = new ArrayList<>();
-
+    public static ArrayList<Camera> cameraList = new ArrayList<>();
+    public static ArrayList<String> keyList = new ArrayList<>();
+    public static ArrayList<PersonCount> personCountList = new ArrayList<>();
+    public static TMapPoint startPoint;
+    public static TMapPoint endPoint;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +79,6 @@ public class NewSearchResultActivity extends AppCompatActivity {
         double end_latitude = receiveIntent.getDoubleExtra("end_latitude",0.0);
         double end_longitude = receiveIntent.getDoubleExtra("end_longitude",0.0);
         tMapPointEnd = new TMapPoint(end_latitude, end_longitude);
-
 
         // -- 출발지 좌표 마커 생성 --
         TMapMarkerItem markerItem_start = new TMapMarkerItem();
@@ -141,6 +149,191 @@ public class NewSearchResultActivity extends AppCompatActivity {
             }
 
         });
+
+        //길 인적 Polyline
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
+        firebaseDatabase.getReference("location").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                //보행자 경로로 PolyLine 띄우기
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Camera camera = dataSnapshot.getValue(Camera.class);
+                    String key = camera.getKey();
+                    Double lat = camera.getLatitude();
+                    cameraList.add(camera);
+                    keyList.add(key);
+                }
+                for(Camera s : cameraList) {
+                    double lat = s.getLatitude();
+                    double lon = s.getLongitude();
+
+                }
+
+                firebaseDatabase.getReference("person").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            String getKey = dataSnapshot.getKey();
+                            System.out.println(getKey);
+
+                            for (String key : keyList){
+                                if(getKey.equals(key)){
+                                    String n1 = dataSnapshot.getValue(String.class);
+                                    int num = Integer.parseInt(n1);
+                                    System.out.println(n1);
+
+                                    if (num >= 0 && num <= 5) {
+                                        for (Camera n : cameraList){
+                                            String s = n.getKey();
+                                            if (s.equals(getKey)){
+                                                double finalLon = n.getLongitude();
+                                                double finalLat = n.getLatitude();
+
+                                                PersonCount personCount = new PersonCount();
+                                                personCount.setStartLatitude(finalLat+0.002);
+                                                personCount.setStartLongitude(finalLon+0.002);
+                                                personCount.setEndLatitude(finalLat-0.002);
+                                                personCount.setEndLongitude(finalLon-0.002);
+                                                personCount.setCount(num);
+
+                                                personCountList.add(personCount);
+
+                                                for(PersonCount p : personCountList) {
+                                                    final double startLt = p.getStartLatitude();
+                                                    final double startLg = p.getStartLongitude();
+                                                    final double endLt = p.getEndLatitude();
+                                                    final double endLg = p.getEndLongitude();
+                                                    System.out.println("=========="+startLt + "=========="+startLg + "=========="+endLt + "=========="+endLg);
+
+                                                    startPoint = new TMapPoint(startLt, startLg);
+                                                    endPoint = new TMapPoint(endLt,endLg);
+
+                                                    new Thread() {
+                                                        @Override
+                                                        public void run() {
+                                                            try {
+                                                                TMapPolyLine tMapPolyLineR = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startPoint, endPoint);
+                                                                tMapPolyLineR.setLineColor(Color.RED);
+                                                                tMapPolyLineR.setLineWidth(20);
+                                                                tMapPolyLineR.setOutLineWidth(20);
+                                                                tMapPolyLineR.setLineColor(Color.parseColor("#FF0000"));
+                                                                tMapPolyLineR.setOutLineColor(Color.parseColor("#FF0000"));
+                                                                tMapView.addTMapPolyLine("PolyLine_streetR", tMapPolyLineR);
+
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();}
+                                                        }
+                                                    }.start();
+                                                }
+
+                                            }}}
+
+                                    if (num > 5 && num < 10) {
+                                        for (Camera n : cameraList){
+                                            String s = n.getKey();
+                                            if (s.equals(getKey)){
+                                                double finalLon = n.getLongitude();
+                                                double finalLat = n.getLatitude();
+
+                                                PersonCount personCount = new PersonCount();
+                                                personCount.setStartLatitude(finalLat+0.002);
+                                                personCount.setStartLongitude(finalLon+0.002);
+                                                personCount.setEndLatitude(finalLat-0.002);
+                                                personCount.setEndLongitude(finalLon-0.002);
+                                                personCount.setCount(num);
+
+                                                personCountList.add(personCount);
+
+                                                for(PersonCount p : personCountList) {
+                                                    final double startLt = p.getStartLatitude();
+                                                    final double startLg = p.getStartLongitude();
+                                                    final double endLt = p.getEndLatitude();
+                                                    final double endLg = p.getEndLongitude();
+                                                    System.out.println("=========="+startLt + "=========="+startLg + "=========="+endLt + "=========="+endLg);
+
+                                                    startPoint = new TMapPoint(startLt, startLg);
+                                                    endPoint = new TMapPoint(endLt,endLg);
+
+                                                    new Thread() {
+                                                        @Override
+                                                        public void run() {
+                                                            try {
+                                                                TMapPolyLine tMapPolyLineB = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startPoint, endPoint);
+                                                                tMapPolyLineB.setLineColor(Color.BLUE);
+                                                                tMapPolyLineB.setLineWidth(20);
+                                                                tMapPolyLineB.setOutLineWidth(20);
+                                                                tMapPolyLineB.setLineColor(Color.parseColor("#0000FF"));
+                                                                tMapPolyLineB.setOutLineColor(Color.parseColor("#0000FF"));
+                                                                tMapView.addTMapPolyLine("PolyLine_streetB", tMapPolyLineB);
+
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();}
+                                                        }
+                                                    }.start();
+                                                }
+
+                                            }}}
+
+                                    if (num > 10) {
+                                        for (Camera n : cameraList){
+                                            String s = n.getKey();
+                                            if (s.equals(getKey)){
+                                                double finalLon = n.getLongitude();
+                                                double finalLat = n.getLatitude();
+
+                                                PersonCount personCount = new PersonCount();
+                                                personCount.setStartLatitude(finalLat+0.002);
+                                                personCount.setStartLongitude(finalLon+0.002);
+                                                personCount.setEndLatitude(finalLat-0.002);
+                                                personCount.setEndLongitude(finalLon-0.002);
+                                                personCount.setCount(num);
+
+                                                personCountList.add(personCount);
+
+                                                for(PersonCount p : personCountList) {
+                                                    final double startLt = p.getStartLatitude();
+                                                    final double startLg = p.getStartLongitude();
+                                                    final double endLt = p.getEndLatitude();
+                                                    final double endLg = p.getEndLongitude();
+                                                    System.out.println("=========="+startLt + "=========="+startLg + "=========="+endLt + "=========="+endLg);
+
+                                                    startPoint = new TMapPoint(startLt, startLg);
+                                                    endPoint = new TMapPoint(endLt,endLg);
+
+                                                    new Thread() {
+                                                        @Override
+                                                        public void run() {
+                                                            try {
+                                                                TMapPolyLine tMapPolyLineG = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, startPoint, endPoint);
+                                                                tMapPolyLineG.setLineColor(Color.GREEN);
+                                                                tMapPolyLineG.setLineWidth(20);
+                                                                tMapPolyLineG.setOutLineWidth(20);
+                                                                tMapPolyLineG.setLineColor(Color.parseColor("#00ff00"));
+                                                                tMapPolyLineG.setOutLineColor(Color.parseColor("#00ff00"));
+                                                                tMapView.addTMapPolyLine("PolyLine_streetG", tMapPolyLineG);
+
+                                                            } catch (Exception e) {
+                                                                e.printStackTrace();}
+                                                        }
+                                                    }.start();
+                                                }
+                                            }}}
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError){
+            }
+        });
+
 
         // 기존 findAllPOI 제거
         // findAllPOI 안에 있던 길찾기 그냥 빼서 위에다가 씀
