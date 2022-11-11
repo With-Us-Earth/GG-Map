@@ -9,6 +9,9 @@
         <entry key="..\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_search_path_result.xml" value="0.25625" />
         <entry key="..\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_search_result.xml" value="0.2504528985507246" />
         <entry key="..\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/drawer_header.xml" value="0.2504528985507246" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/layout/activity_main.xml" value="0.4427083333333333" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/layout/activity_search.xml" value="0.25" />
+        <entry key="..\:/Users/dumal2/StudioProjects/GG-Map/app/src/main/res/layout/activity_search_result.xml" value="0.21014492753623187" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1665" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_location.xml" value="0.1665" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_location_background.xml" value="0.1865" />
@@ -24,16 +27,12 @@
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_location.xml" value="0.1665" />
         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_location_round.xml" value="0.1665" />
         <entry key="app/src/main/res/drawable/drawer_header.xml" value="0.2095" />
-        <entry key="app/src/main/res/drawable/ic_round_keyboard_double_arrow_down_24.xml" value="0.1795" />
         <entry key="app/src/main/res/drawable/layout_round.xml" value="0.115" />
-        <entry key="app/src/main/res/drawable/layout_round_green.xml" value="0.1795" />
         <entry key="app/src/main/res/drawable/rect_round_button.xml" value="0.2095" />
         <entry key="app/src/main/res/drawable/rect_round_edit.xml" value="0.2095" />
-        <entry key="app/src/main/res/layout/activity_emergency_call.xml" value="0.17083333333333334" />
         <entry key="app/src/main/res/layout/activity_human_check.xml" value="0.23233695652173914" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_map.xml" value="0.335" />
-        <entry key="app/src/main/res/layout/activity_new_search.xml" value="0.17083333333333334" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.303125" />
         <entry key="app/src/main/res/layout/activity_search_path.xml" value="0.26792602539062493" />
         <entry key="app/src/main/res/layout/activity_search_path_result.xml" value="0.28177093505859374" />

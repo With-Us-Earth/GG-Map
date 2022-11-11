@@ -89,16 +89,18 @@ public class MainActivity extends AppCompatActivity {
         tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
         tMapView.setHttpsMode(true);
-        tMapView.setZoomLevel(15);
+        tMapView.setZoomLevel(17);
+        tMapView.setRotateEnable(true);
         tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);
         tMapView.setCenterPoint(126.985302, 37.570841);
+
 
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
         //가로등
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.child("중구").addValueEventListener(valueEventListener);
+        databaseReference.child("성북구").addValueEventListener(valueEventListener);
 
         //Navigation
         drawerLayout = findViewById(R.id.drawer_view);
@@ -178,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
             });
         } else {
             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if(location == null)
+                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             if (location != null) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
@@ -237,9 +241,6 @@ public class MainActivity extends AppCompatActivity {
                 Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
                 ImageView imageView = findViewById(R.id.btn_light);
 
-                Location av = new Location("adad");
-                av.setLatitude(37.5635203138);
-                av.setLongitude(126.9780189096);
                 Location locationA = new Location("streetlight");
 
                 if (lightButton) {
@@ -254,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
                     lightButton = true;
-                    imageView.setImageResource(R.drawable.icon_light_on);
+                    imageView.setImageResource(R.drawable.img);
 
                     for (StreetLight streetLight : streetLightArrayList) {
                         double lat = streetLight.getLatitude();      // 위도
@@ -262,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
 
                         locationA.setLatitude(lat);
                         locationA.setLongitude(lon);
-                        float distance = av.distanceTo(locationA);
+                        float distance = location.distanceTo(locationA);
 
                         if(distance <= 250) {
                             createLightMarker(a, b, lat, lon, lightBitmap);
@@ -304,7 +305,10 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.ACCESS_COARSE_LOCATION
             });
         } else {
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if(location == null)
+                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
             if (location != null) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
@@ -323,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
             TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
             TMapPoint tMapPointStart = new TMapPoint(latitude, longitude);
 
-            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);
+            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.img_1);
 
             TextView textView = findViewById(R.id.tv_search_address);
             textView.setText("위도: " + latitude + "경도: " + longitude);
