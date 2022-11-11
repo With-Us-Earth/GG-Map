@@ -11,6 +11,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TableLayout;
 import android.widget.Toast;
 
 import com.skt.Tmap.TMapData;
@@ -46,6 +49,8 @@ public class SearchActivity extends AppCompatActivity {
 
                             Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
                             intent.putExtra("address", address);
+
+
                             startActivity(intent);
 
                         }

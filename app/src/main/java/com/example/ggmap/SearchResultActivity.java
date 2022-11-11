@@ -11,7 +11,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,6 +74,8 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
         tMapView.setSKTMapApiKey("l7xx59b89a7b7f8c439c99f5a86b7ec86fc6");
         tMapView.setZoomLevel(15);
 
+
+
         FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
         linearLayout.addView(tMapView);
 
@@ -81,8 +85,9 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
         Intent receiveIntent = getIntent();
         String address = receiveIntent.getStringExtra("address");
 
-        TextView tv_search_address2 = findViewById(R.id.tv_search_address2);
-        tv_search_address2.setText(address);
+        LinearLayout uiView = (LinearLayout) findViewById(R.id.ui_design);
+        uiView.setVisibility(View.INVISIBLE);
+
 
         TMapData tMapData = new TMapData();
         tMapData.findAllPOI(address, new TMapData.FindAllPOIListenerCallback() {
@@ -204,8 +209,10 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                     ImageButton streetfindBtn = (ImageButton) findViewById(R.id.btn_streetfind);
                     streetfindBtn.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
+
                             //목적지로 지도 이동
-                            tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
+//                            tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
+                            uiView.setVisibility(View.VISIBLE);
 
                             //출발지, 목적지 좌표값
                             double startLat = tMapPointStart.getLatitude();
@@ -223,7 +230,8 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                             //안심길찾기 경유지 설정
 
                             FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
-                            firebaseDatabase.getReference("location").addValueEventListener(new ValueEventListener() {
+                            firebaseDatabase.getReference("location").addListenerForSingleValueEvent(new ValueEventListener() {
+
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -237,10 +245,10 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                     for(Camera s : cameraList) {
                                         double lat = s.getLatitude();
                                         double lon = s.getLongitude();
-                                        double newSmallLat = smallLat - 0.0005;
-                                        double newBigLat = bigLat + 0.0005;
-                                        double newSmallLong = smallLong + 0.0005;
-                                        double newBigLong = bigLong+ 0.0005;
+                                        double newSmallLat = smallLat - 0.005;
+                                        double newBigLat = bigLat + 0.005;
+                                        double newSmallLong = smallLong + 0.005;
+                                        double newBigLong = bigLong+ 0.005;
 
                                         if (newSmallLat <= lat && lat <= newBigLat) {
 
@@ -262,7 +270,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                         }
                                     }
 
-                                    firebaseDatabase.getReference("person").addValueEventListener(new ValueEventListener() {
+                                    firebaseDatabase.getReference("person").addListenerForSingleValueEvent(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -354,38 +362,37 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
 
                                                             Double minNum = Collections.min(numList);
-                                                            System.out.println(minNum);
-                                                            passList2 = finalList.get(minNum);
+                                                            numList.remove(minNum);
+                                                            Double twiceNum = Collections.min(numList);
+                                                            System.out.println(twiceNum);
+                                                            passList2 = finalList.get(twiceNum);
 
-                                                            TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
-                                                            tMapPolyLine1.setLineColor(Color.BLUE);
-                                                            tMapPolyLine1.setLineWidth(20);
-                                                            tMapPolyLine1.setOutLineWidth(20);
-                                                            tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
-                                                            tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
-                                                            tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
+                                                            ArrayList<TMapPoint> op = new ArrayList<>();
 
-                                                            double Distance = tMapPolyLine1.getDistance();
+                                                            //최단
+                                                            TMapPolyLine shortest = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, op, 10);
+                                                            shortest.setLineColor(Color.parseColor("#FF6489"));
+                                                            shortest.setLineWidth(25);
+                                                            shortest.setOutLineWidth(20);
+                                                            tMapView.addTMapPolyLine("PolyLine_streetfind", shortest);
+
+                                                            double shortDistance = shortest.getDistance();
                                                             Thread.sleep(500);
 
 
-
-
                                                             //안심길찾기
-                                                            TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList2, 0);
-                                                            tMapPolyLine.setLineColor(Color.RED);
+                                                            TMapPolyLine saftey = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList2, 0);
+                                                            saftey.setLineColor(Color.parseColor("#1246FF"));
                                                             if(passList2.size() == 0) {
                                                                 System.out.println("비어있음!!");
                                                             } else {
                                                                 System.out.println("안에있음@@");
                                                             }
-                                                            tMapPolyLine.setLineWidth(10);
-                                                            tMapPolyLine.setOutLineWidth(10);
-                                                            tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
-                                                            tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
-                                                            tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
+                                                            saftey.setLineWidth(25);
+                                                            saftey.setOutLineWidth(20);
+                                                            tMapView.addTMapPolyLine("PolyLine_streetfind1", saftey);
 
-                                                            double Distance2 = tMapPolyLine.getDistance();
+                                                            double safteyDistance = saftey.getDistance();
 
 
 
@@ -393,17 +400,17 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                             runOnUiThread(new Runnable() {
                                                                 @Override
                                                                 public void run() {
-                                                                    int a = (int) Math.round(Distance);
-                                                                    int b = (int) Math.round(Distance2);
+                                                                    int timeShort = (int) Math.round(shortDistance);
+                                                                    int timeSafe = (int) Math.round(safteyDistance);
 
-                                                                    shortestTime.setText((int) Math.round(a*0.016)+"분\n" +a + "m" );
-                                                                    safteyTime.setText((int) Math.round(b*0.016)+"분\n" +b + "m");
+                                                                    shortestTime.setText((int) Math.round(timeShort*0.016)+"분\n" +timeShort + "m" );
+                                                                    safteyTime.setText((int) Math.round(timeSafe*0.016)+"분\n" +timeSafe + "m");
 
                                                                     findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
                                                                         @Override
                                                                         public void onClick(View view) {
                                                                             tMapView.removeAllTMapPolyLine();
-                                                                            tMapView.addTMapPolyLine("saftey", tMapPolyLine);
+                                                                            tMapView.addTMapPolyLine("saftey", saftey);
 
 
                                                                         }
@@ -413,7 +420,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
                                                                         @Override
                                                                         public void onClick(View view) {
                                                                             tMapView.removeAllTMapPolyLine();
-                                                                            tMapView.addTMapPolyLine("short", tMapPolyLine1);
+                                                                            tMapView.addTMapPolyLine("short", shortest);
                                                                         }
                                                                     });
 
@@ -493,21 +500,7 @@ public class SearchResultActivity<start_lat> extends AppCompatActivity {
 
 
 
-        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-                passList.clear();
-            }
-        });
 
-        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-                passList.clear();
-            }
-        });
 
     }
 

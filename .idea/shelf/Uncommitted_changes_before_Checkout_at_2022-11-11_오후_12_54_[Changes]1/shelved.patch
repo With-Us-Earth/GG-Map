@@ -1,0 +1,1566 @@
+Index: app/src/main/java/com/example/ggmap/MainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.ggmap;\r\n\r\nimport static com.example.ggmap.SearchResultActivity.tMapPointEnd;\r\nimport static com.example.ggmap.SearchResultActivity.tMapPointStart;\r\n\r\nimport androidx.activity.result.ActivityResultLauncher;\r\nimport androidx.activity.result.contract.ActivityResultContracts;\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport androidx.core.content.ContextCompat;\r\nimport androidx.core.content.res.ResourcesCompat;\r\nimport androidx.core.splashscreen.SplashScreen;\r\nimport androidx.core.view.GravityCompat;\r\nimport androidx.drawerlayout.widget.DrawerLayout;\r\n\r\nimport android.Manifest;\r\nimport android.content.Context;\r\nimport android.content.Intent;\r\nimport android.content.pm.PackageManager;\r\nimport android.graphics.Bitmap;\r\nimport android.graphics.BitmapFactory;\r\nimport android.graphics.Color;\r\nimport android.graphics.drawable.BitmapDrawable;\r\nimport android.location.Location;\r\nimport android.location.LocationListener;\r\nimport android.location.LocationManager;\r\nimport android.os.Bundle;\r\nimport android.os.Handler;\r\nimport android.util.Log;\r\nimport android.view.KeyEvent;\r\nimport android.view.Menu;\r\nimport android.view.Menu;\r\nimport android.view.MenuItem;\r\nimport android.view.View;\r\nimport android.view.inputmethod.InputMethodManager;\r\nimport android.widget.EditText;\r\nimport android.widget.FrameLayout;\r\nimport android.widget.Button;\r\nimport android.widget.FrameLayout;\r\nimport android.widget.ImageButton;\r\nimport android.widget.LinearLayout;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\n//import com.google.android.gms.location.FusedLocationProviderClient;\r\n//import com.google.android.gms.location.LocationServices;\r\n//import com.google.android.gms.tasks.OnSuccessListener;\r\nimport com.google.android.material.navigation.NavigationView;\r\n\r\nimport androidx.annotation.NonNull;\r\nimport androidx.annotation.Nullable;\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport androidx.core.app.ActivityCompat;\r\nimport androidx.core.view.GravityCompat;\r\nimport androidx.drawerlayout.widget.DrawerLayout;\r\nimport androidx.fragment.app.FragmentTransaction;\r\n\r\nimport com.google.android.material.navigation.NavigationView;\r\nimport com.google.firebase.database.DataSnapshot;\r\nimport com.google.firebase.database.DatabaseError;\r\nimport com.google.firebase.database.DatabaseReference;\r\nimport com.google.firebase.database.FirebaseDatabase;\r\nimport com.google.firebase.database.ValueEventListener;\r\nimport com.skt.Tmap.TMapData;\r\nimport com.skt.Tmap.TMapMarkerItem;\r\nimport com.skt.Tmap.TMapPoint;\r\nimport com.skt.Tmap.TMapPolyLine;\r\nimport com.skt.Tmap.TMapTapi;\r\nimport com.skt.Tmap.TMapView;\r\nimport com.skt.Tmap.poi_item.TMapPOIItem;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.Arrays;\r\nimport java.util.List;\r\nimport com.skt.Tmap.TMapMarkerItem;\r\n\r\npublic class MainActivity extends AppCompatActivity {\r\n    private DrawerLayout drawerLayout;\r\n    private TMapView tMapView;\r\n    private LocationManager locationManager;\r\n    private ActivityResultLauncher<String[]> locationPermissionRequest;\r\n    private boolean lightButton = false;\r\n    private final ArrayList<GwangjinStreetLight> gwangjinStreetLightArrayList = new ArrayList<>();\r\n    private final ArrayList<TMapMarkerItem> markerLightItems = new ArrayList<>();\r\n\r\n\r\n    boolean keep = true;\r\n    private final Runnable runner = new Runnable() {\r\n        @Override\r\n        public void run() {\r\n            keep = false;\r\n        }\r\n    };\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_main);\r\n\r\n        //Splash\r\n        /*splashScreen.setKeepOnScreenCondition(new SplashScreen.KeepOnScreenCondition() {\r\n            @Override\r\n            public boolean shouldKeepOnScreen() {\r\n                return keep;\r\n            }\r\n        });\r\n        Handler handler = new Handler();\r\n        handler.postDelayed(runner, 3000);*/\r\n\r\n        //TMap initial\r\n        tMapView = new TMapView(this);\r\n        tMapView.setSKTMapApiKey(\"l7xx59b89a7b7f8c439c99f5a86b7ec86fc6\");\r\n        tMapView.setHttpsMode(true);\r\n        tMapView.setZoomLevel(15);\r\n        tMapView.setLanguage(TMapView.LANGUAGE_KOREAN);\r\n        tMapView.setCenterPoint(126.985302, 37.570841);\r\n\r\n        FrameLayout linearLayout = findViewById(R.id.layout_Tmap);\r\n        linearLayout.addView(tMapView);\r\n\r\n        //가로등\r\n        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference(\"서울시\");\r\n        databaseReference.child(\"종로구\").addValueEventListener(valueEventListener);\r\n\r\n        //Navigation\r\n        drawerLayout = findViewById(R.id.drawer_view);\r\n        NavigationView navigationView = findViewById(R.id.navigation_view);\r\n\r\n        findViewById(R.id.btn_menu).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                drawerLayout.openDrawer(GravityCompat.START);\r\n                drawerLayout.openDrawer(GravityCompat.START);\r\n            }\r\n        });\r\n\r\n\r\n        //길찾기 버튼\r\n        findViewById(R.id.btn_streetfind).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                Intent intent = new Intent(getApplicationContext(), SearchPathActivity.class);\r\n                startActivity(intent);\r\n            }\r\n        });\r\n\r\n        //Navigation\r\n        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {\r\n            @Override\r\n            public boolean onNavigationItemSelected(@NonNull MenuItem item) {\r\n                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();\r\n\r\n                switch (item.getItemId()) {\r\n                    case R.id.human_check_tap:\r\n                        //인적 확인 탭\r\n                        findViewById(R.id.human_check_tap).setOnClickListener(new View.OnClickListener() {\r\n                            @Override\r\n                            public void onClick(View view) {\r\n                                Intent intent = new Intent(getApplicationContext(), HumanCheckActivity.class);\r\n                                startActivity(intent);\r\n                            }\r\n                        });\r\n                        break;\r\n                }\r\n\r\n                drawerLayout = findViewById(R.id.drawer_view);\r\n                drawerLayout.closeDrawer(GravityCompat.START);\r\n                return true;\r\n            }\r\n        });\r\n\r\n\r\n        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);\r\n\r\n        //GPS 권한 요청\r\n        locationPermissionRequest =\r\n                registerForActivityResult(new ActivityResultContracts\r\n                                .RequestMultiplePermissions(), result -> {\r\n                            Boolean fineLocationGranted = result.getOrDefault(\r\n                                    Manifest.permission.ACCESS_FINE_LOCATION, false);\r\n                            Boolean coarseLocationGranted = result.getOrDefault(\r\n                                    Manifest.permission.ACCESS_COARSE_LOCATION, false);\r\n                            if (fineLocationGranted != null && fineLocationGranted) {\r\n                                // Precise location access granted.\r\n                            } else if (coarseLocationGranted != null && coarseLocationGranted) {\r\n                                // Only approximate location access granted.\r\n                            } else {\r\n                                // No location access granted.\r\n                                Toast.makeText(this, \"GPS 권한 요청이 거부되었습니다.\", Toast.LENGTH_SHORT).show();\r\n                            }\r\n                        }\r\n                );\r\n\r\n        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)\r\n                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(),\r\n                Manifest.permission.ACCESS_COARSE_LOCATION)\r\n                != PackageManager.PERMISSION_GRANTED) {\r\n            locationPermissionRequest.launch(new String[]{\r\n                    Manifest.permission.ACCESS_FINE_LOCATION,\r\n                    Manifest.permission.ACCESS_COARSE_LOCATION\r\n            });\r\n        } else {\r\n            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);\r\n            if (location != null) {\r\n                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);\r\n                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);\r\n            }\r\n        }\r\n\r\n        // 긴급 전화 버튼\r\n        findViewById(R.id.btn_call).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                //Intent intent = new Intent(getApplicationContext(), .class);\r\n                //startActivity(intent);\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.tv_search_address).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                Intent intent = new Intent(getApplicationContext(), NewSearchActivity.class);\r\n                startActivity(intent);\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.btn_myLocation).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                getMyLocation();\r\n                //tMapView.setTrackingMode(true);\r\n                tMapView.setCompassMode(!tMapView.getIsCompass());\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.btn_max).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                tMapView.setZoomLevel(tMapView.getZoomLevel() + 1);\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.btn_min).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                tMapView.setZoomLevel(tMapView.getZoomLevel() - 1);\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.btn_light).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                int a = 0;\r\n                Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);\r\n\r\n                if (lightButton) {\r\n                    lightButton = false;\r\n                    for (GwangjinStreetLight gwangjinStreetLight : gwangjinStreetLightArrayList) {\r\n                        markerLightItems.clear();\r\n                        tMapView.removeMarkerItem(\"gjStreetLightsLocation\" + a);\r\n                        a++;\r\n                    }\r\n                } else {\r\n                    lightButton = true;\r\n                    for (GwangjinStreetLight gwangjinStreetLight : gwangjinStreetLightArrayList) {\r\n                        double lat = gwangjinStreetLight.getLatitude();      // 위도\r\n                        double lon = gwangjinStreetLight.getLongitude();     // 경도\r\n\r\n                        // TMapPoint\r\n                        markerLightItems.add(new TMapMarkerItem());\r\n                        TMapPoint tMapPoint = new TMapPoint(lat, lon);\r\n\r\n                        markerLightItems.get(a).setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용\r\n                        markerLightItems.get(a).setPosition(0.5f, 1.0f);  // Marker img의 position\r\n                        markerLightItems.get(a).setTMapPoint(tMapPoint);         // Marker의 위치\r\n\r\n                        // id로 Marker을 식별\r\n                        tMapView.addMarkerItem(\"gjStreetLightsLocation\" + a, markerLightItems.get(a));\r\n                        a++;\r\n                    }\r\n                }\r\n            }\r\n        });\r\n\r\n\r\n    } // end of onCreate()\r\n\r\n    private final ValueEventListener valueEventListener = new ValueEventListener() {\r\n        @Override\r\n        public void onDataChange(@NonNull DataSnapshot snapshot) {\r\n            int a = 0;\r\n            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {\r\n                GwangjinStreetLight gwangjinStreetLight = dataSnapshot.getValue(GwangjinStreetLight.class);\r\n                gwangjinStreetLightArrayList.add(gwangjinStreetLight);\r\n            }\r\n        }\r\n\r\n        @Override\r\n        public void onCancelled(@NonNull DatabaseError error) {\r\n\r\n        }\r\n    };\r\n\r\n    public void getMyLocation() {\r\n        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)\r\n                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)\r\n                != PackageManager.PERMISSION_GRANTED) {\r\n\r\n            locationPermissionRequest.launch(new String[]{\r\n                    Manifest.permission.ACCESS_FINE_LOCATION,\r\n                    Manifest.permission.ACCESS_COARSE_LOCATION\r\n            });\r\n        } else {\r\n            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);\r\n            if (location != null) {\r\n                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);\r\n                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);\r\n            }\r\n        }\r\n    }\r\n\r\n    private final LocationListener locationListener = new LocationListener() {\r\n        @Override\r\n        public void onLocationChanged(@NonNull Location location) {\r\n            String provider = location.getProvider();\r\n            double latitude = location.getLatitude();\r\n            double longitude = location.getLongitude();\r\n\r\n            //마커 생성\r\n            TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();\r\n            TMapPoint tMapPointStart = new TMapPoint(latitude, longitude);\r\n\r\n            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);\r\n\r\n            TextView textView = findViewById(R.id.tv_search_address);\r\n            textView.setText(\"위도: \" + latitude + \"경도: \" + longitude);\r\n            //출발지 마커\r\n            tMapMarkerItem.setIcon(bitmap_start); // 마커 아이콘 지정\r\n            tMapMarkerItem.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정\r\n            tMapMarkerItem.setTMapPoint(tMapPointStart); // 마커의 좌표 지정\r\n            tMapMarkerItem.setName(\"GPGP\"); // 마커의 타이틀 지정\r\n            tMapView.addMarkerItem(\"myLocation\", tMapMarkerItem); // 지도에 마커 추가\r\n            tMapView.setCenterPoint(tMapPointStart.getLongitude(), tMapPointStart.getLatitude());\r\n        }\r\n    };\r\n\r\n    @Override\r\n    public boolean onCreateOptionsMenu(@NonNull Menu menu) {\r\n        getMenuInflater().inflate(R.menu.drawer_menu, menu);\r\n        return true;\r\n    }\r\n\r\n    @Override\r\n    public void onBackPressed() {\r\n        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {\r\n            drawerLayout.closeDrawer(GravityCompat.START);\r\n        } else {\r\n            super.onBackPressed();\r\n        }\r\n    }\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/ggmap/MainActivity.java b/app/src/main/java/com/example/ggmap/MainActivity.java
+--- a/app/src/main/java/com/example/ggmap/MainActivity.java	
++++ b/app/src/main/java/com/example/ggmap/MainActivity.java	
+@@ -1,7 +1,7 @@
+ package com.example.ggmap;
+ 
+-import static com.example.ggmap.SearchResultActivity.tMapPointEnd;
+-import static com.example.ggmap.SearchResultActivity.tMapPointStart;
++//import static com.example.ggmap.SearchResultActivity.tMapPointEnd;
++//import static com.example.ggmap.SearchResultActivity.tMapPointStart;
+ 
+ import androidx.activity.result.ActivityResultLauncher;
+ import androidx.activity.result.contract.ActivityResultContracts;
+Index: app/src/main/java/com/example/ggmap/SearchResultActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.ggmap;\r\n\r\nimport android.content.Intent;\r\nimport android.graphics.Bitmap;\r\nimport android.graphics.BitmapFactory;\r\nimport android.graphics.Color;\r\nimport android.graphics.drawable.BitmapDrawable;\r\nimport android.os.Bundle;\r\nimport android.view.View;\r\nimport android.widget.ArrayAdapter;\r\nimport android.widget.Button;\r\nimport android.widget.FrameLayout;\r\nimport android.widget.ImageButton;\r\nimport android.widget.ListView;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.annotation.NonNull;\r\nimport androidx.annotation.Nullable;\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport androidx.core.content.ContextCompat;\r\nimport androidx.core.splashscreen.SplashScreen;\r\n\r\nimport com.google.firebase.database.DataSnapshot;\r\nimport com.google.firebase.database.DatabaseError;\r\nimport com.google.firebase.database.DatabaseReference;\r\nimport com.google.firebase.database.FirebaseDatabase;\r\nimport com.google.firebase.database.ValueEventListener;\r\nimport com.skt.Tmap.TMapData;\r\nimport com.skt.Tmap.TMapMarkerItem;\r\nimport com.skt.Tmap.TMapPoint;\r\nimport com.skt.Tmap.TMapPolyLine;\r\nimport com.skt.Tmap.TMapView;\r\nimport com.skt.Tmap.poi_item.TMapPOIItem;\r\n\r\nimport org.xml.sax.SAXException;\r\n\r\nimport java.io.IOException;\r\nimport java.util.ArrayList;\r\nimport java.util.Arrays;\r\nimport java.util.Collections;\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\nimport java.util.Observable;\r\n\r\nimport javax.xml.parsers.ParserConfigurationException;\r\n\r\npublic class SearchResultActivity<start_lat> extends AppCompatActivity {\r\n    private TMapView tMapView;\r\n    private ArrayList<TMapMarkerItem> markerItems = new ArrayList<>();\r\n    private TMapPoint tMapPoint;\r\n    public static TMapPoint tMapPointStart;\r\n    public static TMapPoint tMapPointEnd;\r\n\r\n    public static TMapPoint passListPoint;\r\n    public static ArrayList<TMapPoint> passList = new ArrayList<>();\r\n    public static ArrayList<TMapPoint> passList2 = new ArrayList<>();\r\n    public static ArrayList<Camera> cameraList = new ArrayList<>();\r\n    public static ArrayList<Double> numList = new ArrayList<>();\r\n    public static ArrayList<String> keyList = new ArrayList<>();\r\n    public static HashMap<Double, ArrayList<TMapPoint>> finalList = new HashMap<Double, ArrayList<TMapPoint>>();\r\n\r\n\r\n\r\n    @Override\r\n    protected void onCreate(@Nullable Bundle savedInstanceState) {\r\n        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_search_result);\r\n\r\n        tMapView = new TMapView(this);\r\n        tMapView.setSKTMapApiKey(\"l7xx59b89a7b7f8c439c99f5a86b7ec86fc6\");\r\n        tMapView.setZoomLevel(15);\r\n\r\n        FrameLayout linearLayout = findViewById(R.id.layout_Tmap);\r\n        linearLayout.addView(tMapView);\r\n\r\n        TextView safteyTime = findViewById(R.id.saftey_time);\r\n        TextView shortestTime = findViewById(R.id.shortest_time);\r\n\r\n        Intent receiveIntent = getIntent();\r\n        String address = receiveIntent.getStringExtra(\"address\");\r\n\r\n        TextView tv_search_address2 = findViewById(R.id.tv_search_address2);\r\n        tv_search_address2.setText(address);\r\n\r\n        TMapData tMapData = new TMapData();\r\n        tMapData.findAllPOI(address, new TMapData.FindAllPOIListenerCallback() {\r\n            @Override\r\n            public void onFindAllPOI(ArrayList<TMapPOIItem> arrayList) {\r\n                for (int i = 0; i < arrayList.size(); i++) {\r\n                    TMapPOIItem item = arrayList.get(i);\r\n\r\n                    ArrayList<String> point = new ArrayList<>(Arrays.asList(item.getPOIPoint().toString().split(\" \")));\r\n                    float lat = Float.parseFloat(point.get(1));\r\n                    float lon = Float.parseFloat(point.get(3));\r\n\r\n                    //마커 생성\r\n                    markerItems.add(new TMapMarkerItem());\r\n                    tMapPoint = new TMapPoint(lat, lon);\r\n\r\n                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location_result);\r\n                    markerItems.get(i).setIcon(bitmap_start); // 마커 아이콘 지정\r\n                    markerItems.get(i).setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정\r\n                    markerItems.get(i).setTMapPoint(tMapPoint); // 마커의 좌표 지정\r\n                    markerItems.get(i).setName(item.getPOIName()); // 마커의 타이틀 지정\r\n\r\n                    //ic_input_get\r\n                    Bitmap right = ((BitmapDrawable) ContextCompat.getDrawable(SearchResultActivity.this, R.drawable.ic_selection)).getBitmap();\r\n                    markerItems.get(i).setCalloutRightButtonImage(right);\r\n\r\n                    markerItems.get(i).setCanShowCallout(true);\r\n                    markerItems.get(i).setCalloutTitle(item.getPOIName());\r\n                    tMapView.addMarkerItem(\"searchItem\" + i, markerItems.get(i)); // 지도에 마커 추가\r\n\r\n                    \r\n\r\n\r\n                    //출발지 선택\r\n                    Button startSetBtn = (Button) findViewById(R.id.btn_set_start);\r\n                    startSetBtn.setOnClickListener(new View.OnClickListener() {\r\n                        public void onClick(View v) {\r\n                            Toast.makeText(SearchResultActivity.this, \"출발지를 선택해주세요.\", Toast.LENGTH_LONG).show();\r\n\r\n                            //오른쪽 말풍선 리스너\r\n                            tMapView.setOnCalloutRightButtonClickListener(new TMapView.OnCalloutRightButtonClickCallback(){\r\n                                @Override\r\n                                public void onCalloutRightButton(TMapMarkerItem markerItem){\r\n\r\n                                    final String getName = markerItem.getName();\r\n                                    final double getlat = markerItem.getTMapPoint().getLatitude();\r\n                                    final double getlon = markerItem.getTMapPoint().getLongitude();\r\n\r\n                                    System.out.println(getName + getlat + getlon);\r\n\r\n                                    double start_lat = getlat;\r\n                                    double start_lon = getlon;\r\n\r\n                                    //출발지 좌표\r\n                                    tMapPointStart = new TMapPoint(start_lat, start_lon);\r\n                                    Toast.makeText(SearchResultActivity.this, \"출발지로 설정되었습니다.\", Toast.LENGTH_LONG).show();\r\n\r\n                                    //마커 생성\r\n                                    TMapMarkerItem markerItem_start = new TMapMarkerItem();\r\n\r\n                                    //마커 아이콘 가져오기\r\n                                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.location_depart);\r\n                                    //출발지 마커\r\n                                    markerItem_start.setIcon(bitmap_start); // 마커 아이콘 지정\r\n                                    markerItem_start.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정\r\n                                    markerItem_start.setTMapPoint(tMapPointStart); // 마커의 좌표 지정\r\n                                    markerItem_start.setName(\"출발지 마커\"); // 마커의 타이틀 지정\r\n                                    tMapView.addMarkerItem(\"markerItem_start\", markerItem_start); // 지도에 마커 추가\r\n                                }\r\n                            });\r\n                        }\r\n                    });\r\n\r\n                    //도착지 선택\r\n                    Button endSetBtn = (Button) findViewById(R.id.btn_set_end);\r\n                    endSetBtn.setOnClickListener(new View.OnClickListener() {\r\n                        public void onClick(View v) {\r\n                            Toast.makeText(SearchResultActivity.this, \"도착지를 선택해주세요.\", Toast.LENGTH_LONG).show();\r\n\r\n                            //오른쪽 말풍선 리스너\r\n                            tMapView.setOnCalloutRightButtonClickListener(new TMapView.OnCalloutRightButtonClickCallback(){\r\n                                @Override\r\n                                public void onCalloutRightButton(TMapMarkerItem markerItem){\r\n\r\n                                    final String getName = markerItem.getName();\r\n                                    final double getlat = markerItem.getTMapPoint().getLatitude();\r\n                                    final double getlon = markerItem.getTMapPoint().getLongitude();\r\n\r\n                                    System.out.println(getName + getlat + getlon);\r\n\r\n                                    double end_lat = getlat;\r\n                                    double end_lon = getlon;\r\n\r\n                                    //도착지 좌표\r\n                                    tMapPointEnd = new TMapPoint(end_lat, end_lon);\r\n                                    Toast.makeText(SearchResultActivity.this, \"도착지로 설정되었습니다.\", Toast.LENGTH_LONG).show();\r\n\r\n\r\n                                    //마커 생성\r\n                                    TMapMarkerItem markerItem_end = new TMapMarkerItem();\r\n\r\n                                    //마커 아이콘 가져오기\r\n                                    Bitmap bitmap_end = BitmapFactory.decodeResource(getResources(), R.drawable.location_arriv);\r\n                                    //도착지 마커\r\n                                    markerItem_end.setIcon(bitmap_end); // 마커 아이콘 지정\r\n                                    markerItem_end.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정\r\n                                    markerItem_end.setTMapPoint(tMapPointEnd); // 마커의 좌표 지정\r\n                                    markerItem_end.setName(\"도착지 마커\"); // 마커의 타이틀 지정\r\n                                    tMapView.addMarkerItem(\"markerItem_end\", markerItem_end); // 지도에 마커 추가\r\n                                }\r\n                            });\r\n                        }\r\n                    });\r\n\r\n\r\n\r\n\r\n                    //길찾기 버튼\r\n                    ImageButton streetfindBtn = (ImageButton) findViewById(R.id.btn_streetfind);\r\n                    streetfindBtn.setOnClickListener(new View.OnClickListener() {\r\n                        public void onClick(View v) {\r\n                            //목적지로 지도 이동\r\n                            tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());\r\n\r\n                            //출발지, 목적지 좌표값\r\n                            double startLat = tMapPointStart.getLatitude();\r\n                            double startLong = tMapPointStart.getLatitude();\r\n\r\n                            double endLat = tMapPointEnd.getLatitude();\r\n                            double endLong = tMapPointEnd.getLongitude();\r\n\r\n                            //출발지 목적지 좌표 비교\r\n                            double bigLat = Math.max(startLat, endLat);\r\n                            double smallLat = Math.min(startLat, endLat);\r\n                            double bigLong = Math.max(startLong, endLong);\r\n                            double smallLong = Math.min(startLong, endLong);\r\n\r\n                            //안심길찾기 경유지 설정\r\n\r\n                            FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance(\"https://gg-map-21058.firebaseio.com\");\r\n                            firebaseDatabase.getReference(\"location\").addValueEventListener(new ValueEventListener() {\r\n                                @Override\r\n                                public void onDataChange(@NonNull DataSnapshot snapshot) {\r\n\r\n                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {\r\n                                        Camera camera = dataSnapshot.getValue(Camera.class);\r\n\r\n                                        cameraList.add(camera);\r\n\r\n                                    }\r\n                                    //반경 n미터 이내만 불러오기\r\n                                    for(Camera s : cameraList) {\r\n                                        double lat = s.getLatitude();\r\n                                        double lon = s.getLongitude();\r\n                                        double newSmallLat = smallLat - 0.0005;\r\n                                        double newBigLat = bigLat + 0.0005;\r\n                                        double newSmallLong = smallLong + 0.0005;\r\n                                        double newBigLong = bigLong+ 0.0005;\r\n\r\n                                        if (newSmallLat <= lat && lat <= newBigLat) {\r\n\r\n                                            System.out.println(lat);\r\n                                            if (lon >= newSmallLong && lon <= newBigLong) {\r\n                                                String key = s.getKey();\r\n                                                keyList.add(key);\r\n                                                System.out.println(key);\r\n\r\n\r\n\r\n                                            }\r\n                                            else {\r\n                                                System.out.println(\"이건 안됨\");\r\n                                            }\r\n                                        }\r\n                                        else {\r\n                                            System.out.println(\"이건안됨\");\r\n                                        }\r\n                                    }\r\n\r\n                                    firebaseDatabase.getReference(\"person\").addValueEventListener(new ValueEventListener() {\r\n                                        @Override\r\n                                        public void onDataChange(@NonNull DataSnapshot snapshot) {\r\n\r\n                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {\r\n\r\n                                                String getKey = dataSnapshot.getKey();\r\n\r\n                                                //인적수 가져오기\r\n                                                for (String key : keyList){\r\n                                                    if(getKey.equals(key)){\r\n                                                        String n1 = dataSnapshot.getValue(String.class);\r\n                                                        int num = Integer.parseInt(n1);\r\n\r\n\r\n                                                        //인적 5이상만 안심길찾기 경로에 넣음\r\n                                                        if (num >= 5) {\r\n                                                            for (Camera n : cameraList){\r\n                                                                String s = n.getKey();\r\n                                                                if (s.equals(key)){\r\n                                                                    double finalLon = n.getLongitude();\r\n                                                                    double finalLat = n.getLatitude();\r\n                                                                    System.out.println(\"+++++++\"+finalLat);\r\n\r\n\r\n                                                                    passListPoint = new TMapPoint(finalLat, finalLon);\r\n                                                                    passList.add(passListPoint);\r\n\r\n                                                                }\r\n                                                            }\r\n\r\n                                                        }\r\n\r\n\r\n                                                    }\r\n\r\n                                                }\r\n\r\n\r\n                                            }\r\n\r\n                                            ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();\r\n                                            ArrayList<ArrayList<TMapPoint>> haha = new ArrayList<>();\r\n                                            int a = passList.size();\r\n                                            System.out.println(a);\r\n\r\n                                            for (int inx =1; inx <= a; inx++) {\r\n                                                pick(a, new ArrayList<Integer>(), inx, result);\r\n                                            }\r\n\r\n\r\n\r\n\r\n                                            for (ArrayList<Integer> arrayList : result) {\r\n                                                ArrayList<TMapPoint> tlist = new ArrayList<>();\r\n                                                int size = arrayList.size();\r\n\r\n                                                for (int b = 0; b < size; b++){\r\n                                                    int num = arrayList.get(b);\r\n                                                    TMapPoint point = passList.get(num);\r\n\r\n                                                    tlist.add(point);\r\n                                                }\r\n                                                haha.add(tlist);\r\n                                                System.out.println(\"00\"+ arrayList);\r\n                                            }\r\n\r\n\r\n                                                new Thread(){\r\n                                                    @Override\r\n                                                    public void run() {\r\n                                                        try {\r\n\r\n                                                            for(ArrayList<TMapPoint> m : haha){\r\n\r\n                                                                System.out.println(\"=====\"+m);\r\n                                                                TMapPolyLine line = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, m, 0);\r\n                                                                //tMapView.addTMapPolyLine(\"line\", line);\r\n\r\n                                                                double a2 = line.getDistance();\r\n                                                                System.out.println(a2);\r\n                                                                if (a2 != 0.0){\r\n                                                                    finalList.put(a2, m);\r\n                                                                    numList.add(a2);\r\n                                                                    Thread.sleep(500);\r\n                                                                }\r\n                                                                //tMapView.removeAllTMapPolyLine();\r\n\r\n                                                            }\r\n\r\n\r\n                                                            Double minNum = Collections.min(numList);\r\n                                                            System.out.println(minNum);\r\n                                                            passList2 = finalList.get(minNum);\r\n\r\n                                                            TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);\r\n                                                            tMapPolyLine1.setLineColor(Color.BLUE);\r\n                                                            tMapPolyLine1.setLineWidth(20);\r\n                                                            tMapPolyLine1.setOutLineWidth(20);\r\n                                                            tMapPolyLine1.setLineColor(Color.parseColor(\"#3094ff\"));\r\n                                                            tMapPolyLine1.setOutLineColor(Color.parseColor(\"#002247\"));\r\n                                                            tMapView.addTMapPolyLine(\"PolyLine_streetfind\", tMapPolyLine1);\r\n\r\n                                                            double Distance = tMapPolyLine1.getDistance();\r\n                                                            Thread.sleep(500);\r\n\r\n\r\n\r\n\r\n                                                            //안심길찾기\r\n                                                            TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList2, 0);\r\n                                                            tMapPolyLine.setLineColor(Color.RED);\r\n                                                            if(passList2.size() == 0) {\r\n                                                                System.out.println(\"비어있음!!\");\r\n                                                            } else {\r\n                                                                System.out.println(\"안에있음@@\");\r\n                                                            }\r\n                                                            tMapPolyLine.setLineWidth(10);\r\n                                                            tMapPolyLine.setOutLineWidth(10);\r\n                                                            tMapPolyLine.setLineColor(Color.parseColor(\"#FF0000\"));\r\n                                                            tMapPolyLine.setOutLineColor(Color.parseColor(\"#FF0000\"));\r\n                                                            tMapView.addTMapPolyLine(\"PolyLine_streetfind1\", tMapPolyLine);\r\n\r\n                                                            double Distance2 = tMapPolyLine.getDistance();\r\n\r\n\r\n\r\n                                                            // 시간, 거리 보여주기\r\n                                                            runOnUiThread(new Runnable() {\r\n                                                                @Override\r\n                                                                public void run() {\r\n                                                                    int a = (int) Math.round(Distance);\r\n                                                                    int b = (int) Math.round(Distance2);\r\n\r\n                                                                    shortestTime.setText((int) Math.round(a*0.016)+\"분\\n\" +a + \"m\" );\r\n                                                                    safteyTime.setText((int) Math.round(b*0.016)+\"분\\n\" +b + \"m\");\r\n\r\n                                                                    findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {\r\n                                                                        @Override\r\n                                                                        public void onClick(View view) {\r\n                                                                            tMapView.removeAllTMapPolyLine();\r\n                                                                            tMapView.addTMapPolyLine(\"saftey\", tMapPolyLine);\r\n\r\n\r\n                                                                        }\r\n                                                                    });\r\n\r\n                                                                    findViewById(R.id.shortest_distance_btn).setOnClickListener(new View.OnClickListener() {\r\n                                                                        @Override\r\n                                                                        public void onClick(View view) {\r\n                                                                            tMapView.removeAllTMapPolyLine();\r\n                                                                            tMapView.addTMapPolyLine(\"short\", tMapPolyLine1);\r\n                                                                        }\r\n                                                                    });\r\n\r\n                                                                }\r\n                                                            });\r\n\r\n\r\n\r\n                                                        } catch (IOException | ParserConfigurationException | SAXException | InterruptedException e) {\r\n                                                            e.printStackTrace();\r\n                                                        }\r\n\r\n                                                    }\r\n                                                }.start();\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n                                        }\r\n\r\n                                        @Override\r\n                                        public void onCancelled(@NonNull DatabaseError error) {\r\n\r\n                                        }\r\n                                    });\r\n\r\n\r\n\r\n\r\n                                    //보행자 경로로 PolyLine 띄우기\r\n                                    new Thread() {\r\n                                        @Override\r\n                                        public void run() {\r\n                                            try {\r\n                                                //최단길찾기\r\n\r\n\r\n\r\n\r\n                                            } catch (Exception e) {\r\n                                                e.printStackTrace();\r\n                                            }\r\n\r\n                                        }\r\n                                    }.start();\r\n\r\n                                }\r\n\r\n\r\n\r\n                                @Override\r\n                                public void onCancelled(@NonNull DatabaseError databaseError){\r\n\r\n                                }\r\n\r\n                            });\r\n\r\n\r\n\r\n                        }\r\n\r\n                    });\r\n                }\r\n                tMapView.setCenterPoint(tMapPoint.getLongitude(),tMapPoint.getLatitude());\r\n            }\r\n\r\n        });\r\n\r\n\r\n\r\n\r\n\r\n        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                finish();\r\n                passList.clear();\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                finish();\r\n                passList.clear();\r\n            }\r\n        });\r\n\r\n    }\r\n\r\n\r\n    private static void pick(int n, ArrayList<Integer> picked, int toPick, ArrayList<ArrayList<Integer>> collection) {\r\n\r\n        if (toPick == 0) {\r\n            //System.out.println(picked);\r\n            collection.add(picked);\r\n            return;\r\n        }\r\n\r\n        int smallest = picked.isEmpty() ? 0 : picked.get(picked.size() - 1) + 1;\r\n\r\n        for (int next = smallest; next < n; next++) {\r\n            picked.add(next);\r\n            pick(n, new ArrayList<Integer>(picked), toPick - 1, collection);\r\n            picked.remove(picked.size() - 1);\r\n        }\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/ggmap/SearchResultActivity.java b/app/src/main/java/com/example/ggmap/SearchResultActivity.java
+--- a/app/src/main/java/com/example/ggmap/SearchResultActivity.java	
++++ b/app/src/main/java/com/example/ggmap/SearchResultActivity.java	
+@@ -1,532 +1,533 @@
+-package com.example.ggmap;
+-
+-import android.content.Intent;
+-import android.graphics.Bitmap;
+-import android.graphics.BitmapFactory;
+-import android.graphics.Color;
+-import android.graphics.drawable.BitmapDrawable;
+-import android.os.Bundle;
+-import android.view.View;
+-import android.widget.ArrayAdapter;
+-import android.widget.Button;
+-import android.widget.FrameLayout;
+-import android.widget.ImageButton;
+-import android.widget.ListView;
+-import android.widget.TextView;
+-import android.widget.Toast;
+-
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.core.content.ContextCompat;
+-import androidx.core.splashscreen.SplashScreen;
+-
+-import com.google.firebase.database.DataSnapshot;
+-import com.google.firebase.database.DatabaseError;
+-import com.google.firebase.database.DatabaseReference;
+-import com.google.firebase.database.FirebaseDatabase;
+-import com.google.firebase.database.ValueEventListener;
+-import com.skt.Tmap.TMapData;
+-import com.skt.Tmap.TMapMarkerItem;
+-import com.skt.Tmap.TMapPoint;
+-import com.skt.Tmap.TMapPolyLine;
+-import com.skt.Tmap.TMapView;
+-import com.skt.Tmap.poi_item.TMapPOIItem;
+-
+-import org.xml.sax.SAXException;
+-
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.Map;
+-import java.util.Observable;
+-
+-import javax.xml.parsers.ParserConfigurationException;
+-
+-public class SearchResultActivity<start_lat> extends AppCompatActivity {
+-    private TMapView tMapView;
+-    private ArrayList<TMapMarkerItem> markerItems = new ArrayList<>();
+-    private TMapPoint tMapPoint;
+-    public static TMapPoint tMapPointStart;
+-    public static TMapPoint tMapPointEnd;
+-
+-    public static TMapPoint passListPoint;
+-    public static ArrayList<TMapPoint> passList = new ArrayList<>();
+-    public static ArrayList<TMapPoint> passList2 = new ArrayList<>();
+-    public static ArrayList<Camera> cameraList = new ArrayList<>();
+-    public static ArrayList<Double> numList = new ArrayList<>();
+-    public static ArrayList<String> keyList = new ArrayList<>();
+-    public static HashMap<Double, ArrayList<TMapPoint>> finalList = new HashMap<Double, ArrayList<TMapPoint>>();
+-
+-
+-
+-    @Override
+-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_search_result);
+-
+-        tMapView = new TMapView(this);
+-        tMapView.setSKTMapApiKey("l7xx59b89a7b7f8c439c99f5a86b7ec86fc6");
+-        tMapView.setZoomLevel(15);
+-
+-        FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
+-        linearLayout.addView(tMapView);
+-
+-        TextView safteyTime = findViewById(R.id.saftey_time);
+-        TextView shortestTime = findViewById(R.id.shortest_time);
+-
+-        Intent receiveIntent = getIntent();
+-        String address = receiveIntent.getStringExtra("address");
+-
+-        TextView tv_search_address2 = findViewById(R.id.tv_search_address2);
+-        tv_search_address2.setText(address);
+-
+-        TMapData tMapData = new TMapData();
+-        tMapData.findAllPOI(address, new TMapData.FindAllPOIListenerCallback() {
+-            @Override
+-            public void onFindAllPOI(ArrayList<TMapPOIItem> arrayList) {
+-                for (int i = 0; i < arrayList.size(); i++) {
+-                    TMapPOIItem item = arrayList.get(i);
+-
+-                    ArrayList<String> point = new ArrayList<>(Arrays.asList(item.getPOIPoint().toString().split(" ")));
+-                    float lat = Float.parseFloat(point.get(1));
+-                    float lon = Float.parseFloat(point.get(3));
+-
+-                    //마커 생성
+-                    markerItems.add(new TMapMarkerItem());
+-                    tMapPoint = new TMapPoint(lat, lon);
+-
+-                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location_result);
+-                    markerItems.get(i).setIcon(bitmap_start); // 마커 아이콘 지정
+-                    markerItems.get(i).setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
+-                    markerItems.get(i).setTMapPoint(tMapPoint); // 마커의 좌표 지정
+-                    markerItems.get(i).setName(item.getPOIName()); // 마커의 타이틀 지정
+-
+-                    //ic_input_get
+-                    Bitmap right = ((BitmapDrawable) ContextCompat.getDrawable(SearchResultActivity.this, R.drawable.ic_selection)).getBitmap();
+-                    markerItems.get(i).setCalloutRightButtonImage(right);
+-
+-                    markerItems.get(i).setCanShowCallout(true);
+-                    markerItems.get(i).setCalloutTitle(item.getPOIName());
+-                    tMapView.addMarkerItem("searchItem" + i, markerItems.get(i)); // 지도에 마커 추가
+-
+-                    
+-
+-
+-                    //출발지 선택
+-                    Button startSetBtn = (Button) findViewById(R.id.btn_set_start);
+-                    startSetBtn.setOnClickListener(new View.OnClickListener() {
+-                        public void onClick(View v) {
+-                            Toast.makeText(SearchResultActivity.this, "출발지를 선택해주세요.", Toast.LENGTH_LONG).show();
+-
+-                            //오른쪽 말풍선 리스너
+-                            tMapView.setOnCalloutRightButtonClickListener(new TMapView.OnCalloutRightButtonClickCallback(){
+-                                @Override
+-                                public void onCalloutRightButton(TMapMarkerItem markerItem){
+-
+-                                    final String getName = markerItem.getName();
+-                                    final double getlat = markerItem.getTMapPoint().getLatitude();
+-                                    final double getlon = markerItem.getTMapPoint().getLongitude();
+-
+-                                    System.out.println(getName + getlat + getlon);
+-
+-                                    double start_lat = getlat;
+-                                    double start_lon = getlon;
+-
+-                                    //출발지 좌표
+-                                    tMapPointStart = new TMapPoint(start_lat, start_lon);
+-                                    Toast.makeText(SearchResultActivity.this, "출발지로 설정되었습니다.", Toast.LENGTH_LONG).show();
+-
+-                                    //마커 생성
+-                                    TMapMarkerItem markerItem_start = new TMapMarkerItem();
+-
+-                                    //마커 아이콘 가져오기
+-                                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.location_depart);
+-                                    //출발지 마커
+-                                    markerItem_start.setIcon(bitmap_start); // 마커 아이콘 지정
+-                                    markerItem_start.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
+-                                    markerItem_start.setTMapPoint(tMapPointStart); // 마커의 좌표 지정
+-                                    markerItem_start.setName("출발지 마커"); // 마커의 타이틀 지정
+-                                    tMapView.addMarkerItem("markerItem_start", markerItem_start); // 지도에 마커 추가
+-                                }
+-                            });
+-                        }
+-                    });
+-
+-                    //도착지 선택
+-                    Button endSetBtn = (Button) findViewById(R.id.btn_set_end);
+-                    endSetBtn.setOnClickListener(new View.OnClickListener() {
+-                        public void onClick(View v) {
+-                            Toast.makeText(SearchResultActivity.this, "도착지를 선택해주세요.", Toast.LENGTH_LONG).show();
+-
+-                            //오른쪽 말풍선 리스너
+-                            tMapView.setOnCalloutRightButtonClickListener(new TMapView.OnCalloutRightButtonClickCallback(){
+-                                @Override
+-                                public void onCalloutRightButton(TMapMarkerItem markerItem){
+-
+-                                    final String getName = markerItem.getName();
+-                                    final double getlat = markerItem.getTMapPoint().getLatitude();
+-                                    final double getlon = markerItem.getTMapPoint().getLongitude();
+-
+-                                    System.out.println(getName + getlat + getlon);
+-
+-                                    double end_lat = getlat;
+-                                    double end_lon = getlon;
+-
+-                                    //도착지 좌표
+-                                    tMapPointEnd = new TMapPoint(end_lat, end_lon);
+-                                    Toast.makeText(SearchResultActivity.this, "도착지로 설정되었습니다.", Toast.LENGTH_LONG).show();
+-
+-
+-                                    //마커 생성
+-                                    TMapMarkerItem markerItem_end = new TMapMarkerItem();
+-
+-                                    //마커 아이콘 가져오기
+-                                    Bitmap bitmap_end = BitmapFactory.decodeResource(getResources(), R.drawable.location_arriv);
+-                                    //도착지 마커
+-                                    markerItem_end.setIcon(bitmap_end); // 마커 아이콘 지정
+-                                    markerItem_end.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
+-                                    markerItem_end.setTMapPoint(tMapPointEnd); // 마커의 좌표 지정
+-                                    markerItem_end.setName("도착지 마커"); // 마커의 타이틀 지정
+-                                    tMapView.addMarkerItem("markerItem_end", markerItem_end); // 지도에 마커 추가
+-                                }
+-                            });
+-                        }
+-                    });
+-
+-
+-
+-
+-                    //길찾기 버튼
+-                    ImageButton streetfindBtn = (ImageButton) findViewById(R.id.btn_streetfind);
+-                    streetfindBtn.setOnClickListener(new View.OnClickListener() {
+-                        public void onClick(View v) {
+-                            //목적지로 지도 이동
+-                            tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
+-
+-                            //출발지, 목적지 좌표값
+-                            double startLat = tMapPointStart.getLatitude();
+-                            double startLong = tMapPointStart.getLatitude();
+-
+-                            double endLat = tMapPointEnd.getLatitude();
+-                            double endLong = tMapPointEnd.getLongitude();
+-
+-                            //출발지 목적지 좌표 비교
+-                            double bigLat = Math.max(startLat, endLat);
+-                            double smallLat = Math.min(startLat, endLat);
+-                            double bigLong = Math.max(startLong, endLong);
+-                            double smallLong = Math.min(startLong, endLong);
+-
+-                            //안심길찾기 경유지 설정
+-
+-                            FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
+-                            firebaseDatabase.getReference("location").addValueEventListener(new ValueEventListener() {
+-                                @Override
+-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+-
+-                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+-                                        Camera camera = dataSnapshot.getValue(Camera.class);
+-
+-                                        cameraList.add(camera);
+-
+-                                    }
+-                                    //반경 n미터 이내만 불러오기
+-                                    for(Camera s : cameraList) {
+-                                        double lat = s.getLatitude();
+-                                        double lon = s.getLongitude();
+-                                        double newSmallLat = smallLat - 0.0005;
+-                                        double newBigLat = bigLat + 0.0005;
+-                                        double newSmallLong = smallLong + 0.0005;
+-                                        double newBigLong = bigLong+ 0.0005;
+-
+-                                        if (newSmallLat <= lat && lat <= newBigLat) {
+-
+-                                            System.out.println(lat);
+-                                            if (lon >= newSmallLong && lon <= newBigLong) {
+-                                                String key = s.getKey();
+-                                                keyList.add(key);
+-                                                System.out.println(key);
+-
+-
+-
+-                                            }
+-                                            else {
+-                                                System.out.println("이건 안됨");
+-                                            }
+-                                        }
+-                                        else {
+-                                            System.out.println("이건안됨");
+-                                        }
+-                                    }
+-
+-                                    firebaseDatabase.getReference("person").addValueEventListener(new ValueEventListener() {
+-                                        @Override
+-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+-
+-                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+-
+-                                                String getKey = dataSnapshot.getKey();
+-
+-                                                //인적수 가져오기
+-                                                for (String key : keyList){
+-                                                    if(getKey.equals(key)){
+-                                                        String n1 = dataSnapshot.getValue(String.class);
+-                                                        int num = Integer.parseInt(n1);
+-
+-
+-                                                        //인적 5이상만 안심길찾기 경로에 넣음
+-                                                        if (num >= 5) {
+-                                                            for (Camera n : cameraList){
+-                                                                String s = n.getKey();
+-                                                                if (s.equals(key)){
+-                                                                    double finalLon = n.getLongitude();
+-                                                                    double finalLat = n.getLatitude();
+-                                                                    System.out.println("+++++++"+finalLat);
+-
+-
+-                                                                    passListPoint = new TMapPoint(finalLat, finalLon);
+-                                                                    passList.add(passListPoint);
+-
+-                                                                }
+-                                                            }
+-
+-                                                        }
+-
+-
+-                                                    }
+-
+-                                                }
+-
+-
+-                                            }
+-
+-                                            ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
+-                                            ArrayList<ArrayList<TMapPoint>> haha = new ArrayList<>();
+-                                            int a = passList.size();
+-                                            System.out.println(a);
+-
+-                                            for (int inx =1; inx <= a; inx++) {
+-                                                pick(a, new ArrayList<Integer>(), inx, result);
+-                                            }
+-
+-
+-
+-
+-                                            for (ArrayList<Integer> arrayList : result) {
+-                                                ArrayList<TMapPoint> tlist = new ArrayList<>();
+-                                                int size = arrayList.size();
+-
+-                                                for (int b = 0; b < size; b++){
+-                                                    int num = arrayList.get(b);
+-                                                    TMapPoint point = passList.get(num);
+-
+-                                                    tlist.add(point);
+-                                                }
+-                                                haha.add(tlist);
+-                                                System.out.println("00"+ arrayList);
+-                                            }
+-
+-
+-                                                new Thread(){
+-                                                    @Override
+-                                                    public void run() {
+-                                                        try {
+-
+-                                                            for(ArrayList<TMapPoint> m : haha){
+-
+-                                                                System.out.println("====="+m);
+-                                                                TMapPolyLine line = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, m, 0);
+-                                                                //tMapView.addTMapPolyLine("line", line);
+-
+-                                                                double a2 = line.getDistance();
+-                                                                System.out.println(a2);
+-                                                                if (a2 != 0.0){
+-                                                                    finalList.put(a2, m);
+-                                                                    numList.add(a2);
+-                                                                    Thread.sleep(500);
+-                                                                }
+-                                                                //tMapView.removeAllTMapPolyLine();
+-
+-                                                            }
+-
+-
+-                                                            Double minNum = Collections.min(numList);
+-                                                            System.out.println(minNum);
+-                                                            passList2 = finalList.get(minNum);
+-
+-                                                            TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
+-                                                            tMapPolyLine1.setLineColor(Color.BLUE);
+-                                                            tMapPolyLine1.setLineWidth(20);
+-                                                            tMapPolyLine1.setOutLineWidth(20);
+-                                                            tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
+-                                                            tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
+-                                                            tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
+-
+-                                                            double Distance = tMapPolyLine1.getDistance();
+-                                                            Thread.sleep(500);
+-
+-
+-
+-
+-                                                            //안심길찾기
+-                                                            TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList2, 0);
+-                                                            tMapPolyLine.setLineColor(Color.RED);
+-                                                            if(passList2.size() == 0) {
+-                                                                System.out.println("비어있음!!");
+-                                                            } else {
+-                                                                System.out.println("안에있음@@");
+-                                                            }
+-                                                            tMapPolyLine.setLineWidth(10);
+-                                                            tMapPolyLine.setOutLineWidth(10);
+-                                                            tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
+-                                                            tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
+-                                                            tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
+-
+-                                                            double Distance2 = tMapPolyLine.getDistance();
+-
+-
+-
+-                                                            // 시간, 거리 보여주기
+-                                                            runOnUiThread(new Runnable() {
+-                                                                @Override
+-                                                                public void run() {
+-                                                                    int a = (int) Math.round(Distance);
+-                                                                    int b = (int) Math.round(Distance2);
+-
+-                                                                    shortestTime.setText((int) Math.round(a*0.016)+"분\n" +a + "m" );
+-                                                                    safteyTime.setText((int) Math.round(b*0.016)+"분\n" +b + "m");
+-
+-                                                                    findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
+-                                                                        @Override
+-                                                                        public void onClick(View view) {
+-                                                                            tMapView.removeAllTMapPolyLine();
+-                                                                            tMapView.addTMapPolyLine("saftey", tMapPolyLine);
+-
+-
+-                                                                        }
+-                                                                    });
+-
+-                                                                    findViewById(R.id.shortest_distance_btn).setOnClickListener(new View.OnClickListener() {
+-                                                                        @Override
+-                                                                        public void onClick(View view) {
+-                                                                            tMapView.removeAllTMapPolyLine();
+-                                                                            tMapView.addTMapPolyLine("short", tMapPolyLine1);
+-                                                                        }
+-                                                                    });
+-
+-                                                                }
+-                                                            });
+-
+-
+-
+-                                                        } catch (IOException | ParserConfigurationException | SAXException | InterruptedException e) {
+-                                                            e.printStackTrace();
+-                                                        }
+-
+-                                                    }
+-                                                }.start();
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-                                        }
+-
+-                                        @Override
+-                                        public void onCancelled(@NonNull DatabaseError error) {
+-
+-                                        }
+-                                    });
+-
+-
+-
+-
+-                                    //보행자 경로로 PolyLine 띄우기
+-                                    new Thread() {
+-                                        @Override
+-                                        public void run() {
+-                                            try {
+-                                                //최단길찾기
+-
+-
+-
+-
+-                                            } catch (Exception e) {
+-                                                e.printStackTrace();
+-                                            }
+-
+-                                        }
+-                                    }.start();
+-
+-                                }
+-
+-
+-
+-                                @Override
+-                                public void onCancelled(@NonNull DatabaseError databaseError){
+-
+-                                }
+-
+-                            });
+-
+-
+-
+-                        }
+-
+-                    });
+-                }
+-                tMapView.setCenterPoint(tMapPoint.getLongitude(),tMapPoint.getLatitude());
+-            }
+-
+-        });
+-
+-
+-
+-
+-
+-        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View view) {
+-                finish();
+-                passList.clear();
+-            }
+-        });
+-
+-        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View view) {
+-                finish();
+-                passList.clear();
+-            }
+-        });
+-
+-    }
+-
+-
+-    private static void pick(int n, ArrayList<Integer> picked, int toPick, ArrayList<ArrayList<Integer>> collection) {
+-
+-        if (toPick == 0) {
+-            //System.out.println(picked);
+-            collection.add(picked);
+-            return;
+-        }
+-
+-        int smallest = picked.isEmpty() ? 0 : picked.get(picked.size() - 1) + 1;
+-
+-        for (int next = smallest; next < n; next++) {
+-            picked.add(next);
+-            pick(n, new ArrayList<Integer>(picked), toPick - 1, collection);
+-            picked.remove(picked.size() - 1);
+-        }
+-    }
+-
+-}
++//package com.example.ggmap;
++//
++//import android.content.Intent;
++//import android.graphics.Bitmap;
++//import android.graphics.BitmapFactory;
++//import android.graphics.Color;
++//import android.graphics.drawable.BitmapDrawable;
++//import android.os.Bundle;
++//import android.view.View;
++//import android.widget.ArrayAdapter;
++//import android.widget.Button;
++//import android.widget.FrameLayout;
++//import android.widget.ImageButton;
++//import android.widget.ListView;
++//import android.widget.TextView;
++//import android.widget.Toast;
++//
++//import androidx.annotation.NonNull;
++//import androidx.annotation.Nullable;
++//import androidx.appcompat.app.AppCompatActivity;
++//import androidx.core.content.ContextCompat;
++//import androidx.core.splashscreen.SplashScreen;
++//
++//import com.google.firebase.database.DataSnapshot;
++//import com.google.firebase.database.DatabaseError;
++//import com.google.firebase.database.DatabaseReference;
++//import com.google.firebase.database.FirebaseDatabase;
++//import com.google.firebase.database.ValueEventListener;
++//import com.skt.Tmap.TMapData;
++//import com.skt.Tmap.TMapMarkerItem;
++//import com.skt.Tmap.TMapPoint;
++//import com.skt.Tmap.TMapPolyLine;
++//import com.skt.Tmap.TMapView;
++//import com.skt.Tmap.poi_item.TMapPOIItem;
++//
++//import org.xml.sax.SAXException;
++//
++//import java.io.IOException;
++//import java.util.ArrayList;
++//import java.util.Arrays;
++//import java.util.Collections;
++//import java.util.HashMap;
++//import java.util.Map;
++//import java.util.Observable;
++//
++//import javax.xml.parsers.ParserConfigurationException;
++//
++//public class SearchResultActivity<start_lat> extends AppCompatActivity {
++//    private TMapView tMapView;
++//    private ArrayList<TMapMarkerItem> markerItems = new ArrayList<>();
++//    private TMapPoint tMapPoint;
++//    public static TMapPoint tMapPointStart;
++//    public static TMapPoint tMapPointEnd;
++//
++//    public static TMapPoint passListPoint;
++//    public static ArrayList<TMapPoint> passList = new ArrayList<>();
++//    public static ArrayList<TMapPoint> passList2 = new ArrayList<>();
++//    public static ArrayList<Camera> cameraList = new ArrayList<>();
++//    public static ArrayList<Double> numList = new ArrayList<>();
++//    public static ArrayList<String> keyList = new ArrayList<>();
++//    public static HashMap<Double, ArrayList<TMapPoint>> finalList = new HashMap<Double, ArrayList<TMapPoint>>();
++//
++//
++//
++//    @Override
++//    protected void onCreate(@Nullable Bundle savedInstanceState) {
++//        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
++//        super.onCreate(savedInstanceState);
++//        setContentView(R.layout.activity_search_result);
++//
++//        tMapView = new TMapView(this);
++//        tMapView.setSKTMapApiKey("l7xx59b89a7b7f8c439c99f5a86b7ec86fc6");
++//        tMapView.setZoomLevel(15);
++//
++//        FrameLayout linearLayout = findViewById(R.id.layout_Tmap);
++//        linearLayout.addView(tMapView);
++//
++//        TextView safteyTime = findViewById(R.id.saftey_time);
++//        TextView shortestTime = findViewById(R.id.shortest_time);
++//
++//        Intent receiveIntent = getIntent();
++//        String address = receiveIntent.getStringExtra("address");
++//
++//        TextView tv_search_address2 = findViewById(R.id.tv_search_address2);
++//        tv_search_address2.setText(address);
++//
++//        TMapData tMapData = new TMapData();
++//        tMapData.findAllPOI(address, new TMapData.FindAllPOIListenerCallback() {
++//            @Override
++//            public void onFindAllPOI(ArrayList<TMapPOIItem> arrayList) {
++//                for (int i = 0; i < arrayList.size(); i++) {
++//                    TMapPOIItem item = arrayList.get(i);
++//
++//                    ArrayList<String> point = new ArrayList<>(Arrays.asList(item.getPOIPoint().toString().split(" ")));
++//                    float lat = Float.parseFloat(point.get(1));
++//                    float lon = Float.parseFloat(point.get(3));
++//
++//                    //마커 생성
++//                    markerItems.add(new TMapMarkerItem());
++//                    tMapPoint = new TMapPoint(lat, lon);
++//
++//                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.ic_location_result);
++//                    markerItems.get(i).setIcon(bitmap_start); // 마커 아이콘 지정
++//                    markerItems.get(i).setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
++//                    markerItems.get(i).setTMapPoint(tMapPoint); // 마커의 좌표 지정
++//                    markerItems.get(i).setName(item.getPOIName()); // 마커의 타이틀 지정
++//
++//                    //ic_input_get
++//                    Bitmap right = ((BitmapDrawable) ContextCompat.getDrawable(SearchResultActivity.this, R.drawable.ic_selection)).getBitmap();
++//                    markerItems.get(i).setCalloutRightButtonImage(right);
++//
++//                    markerItems.get(i).setCanShowCallout(true);
++//                    markerItems.get(i).setCalloutTitle(item.getPOIName());
++//                    tMapView.addMarkerItem("searchItem" + i, markerItems.get(i)); // 지도에 마커 추가
++//
++//
++//
++//
++//                    //출발지 선택
++//                    Button startSetBtn = (Button) findViewById(R.id.btn_set_start);
++//                    startSetBtn.setOnClickListener(new View.OnClickListener() {
++//                        public void onClick(View v) {
++//                            Toast.makeText(SearchResultActivity.this, "출발지를 선택해주세요.", Toast.LENGTH_LONG).show();
++//
++//                            //오른쪽 말풍선 리스너
++//                            tMapView.setOnCalloutRightButtonClickListener(new TMapView.OnCalloutRightButtonClickCallback(){
++//                                @Override
++//                                public void onCalloutRightButton(TMapMarkerItem markerItem){
++//
++//                                    final String getName = markerItem.getName();
++//                                    final double getlat = markerItem.getTMapPoint().getLatitude();
++//                                    final double getlon = markerItem.getTMapPoint().getLongitude();
++//
++//                                    System.out.println(getName + getlat + getlon);
++//
++//                                    double start_lat = getlat;
++//                                    double start_lon = getlon;
++//
++//                                    //출발지 좌표
++//                                    tMapPointStart = new TMapPoint(start_lat, start_lon);
++//                                    Toast.makeText(SearchResultActivity.this, "출발지로 설정되었습니다.", Toast.LENGTH_LONG).show();
++//
++//                                    //마커 생성
++//                                    TMapMarkerItem markerItem_start = new TMapMarkerItem();
++//
++//                                    //마커 아이콘 가져오기
++//                                    Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.location_depart);
++//                                    //출발지 마커
++//                                    markerItem_start.setIcon(bitmap_start); // 마커 아이콘 지정
++//                                    markerItem_start.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
++//                                    markerItem_start.setTMapPoint(tMapPointStart); // 마커의 좌표 지정
++//                                    markerItem_start.setName("출발지 마커"); // 마커의 타이틀 지정
++//                                    tMapView.addMarkerItem("markerItem_start", markerItem_start); // 지도에 마커 추가
++//                                }
++//                            });
++//                        }
++//                    });
++//
++//                    //도착지 선택
++//                    Button endSetBtn = (Button) findViewById(R.id.btn_set_end);
++//                    endSetBtn.setOnClickListener(new View.OnClickListener() {
++//                        public void onClick(View v) {
++//                            Toast.makeText(SearchResultActivity.this, "도착지를 선택해주세요.", Toast.LENGTH_LONG).show();
++//
++//                            //오른쪽 말풍선 리스너
++//                            tMapView.setOnCalloutRightButtonClickListener(new TMapView.OnCalloutRightButtonClickCallback(){
++//                                @Override
++//                                public void onCalloutRightButton(TMapMarkerItem markerItem){
++//
++//                                    final String getName = markerItem.getName();
++//                                    final double getlat = markerItem.getTMapPoint().getLatitude();
++//                                    final double getlon = markerItem.getTMapPoint().getLongitude();
++//
++//                                    System.out.println(getName + getlat + getlon);
++//
++//                                    double end_lat = getlat;
++//                                    double end_lon = getlon;
++//
++//                                    //도착지 좌표
++//                                    tMapPointEnd = new TMapPoint(end_lat, end_lon);
++//                                    Toast.makeText(SearchResultActivity.this, "도착지로 설정되었습니다.", Toast.LENGTH_LONG).show();
++//
++//
++//                                    //마커 생성
++//                                    TMapMarkerItem markerItem_end = new TMapMarkerItem();
++//
++//                                    //마커 아이콘 가져오기
++//                                    Bitmap bitmap_end = BitmapFactory.decodeResource(getResources(), R.drawable.location_arriv);
++//                                    //도착지 마커
++//                                    markerItem_end.setIcon(bitmap_end); // 마커 아이콘 지정
++//                                    markerItem_end.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
++//                                    markerItem_end.setTMapPoint(tMapPointEnd); // 마커의 좌표 지정
++//                                    markerItem_end.setName("도착지 마커"); // 마커의 타이틀 지정
++//                                    tMapView.addMarkerItem("markerItem_end", markerItem_end); // 지도에 마커 추가
++//                                }
++//                            });
++//                        }
++//                    });
++//
++//
++//
++//
++//                    //길찾기 버튼
++//                    ImageButton streetfindBtn = (ImageButton) findViewById(R.id.btn_streetfind);
++//                    streetfindBtn.setOnClickListener(new View.OnClickListener() {
++//                        public void onClick(View v) {
++//                            //목적지로 지도 이동
++//                            tMapView.setCenterPoint((float) tMapPointEnd.getLongitude(), (float) tMapPointEnd.getLatitude());
++//
++//                            //출발지, 목적지 좌표값
++//                            double startLat = tMapPointStart.getLatitude();
++//                            double startLong = tMapPointStart.getLatitude();
++//
++//                            double endLat = tMapPointEnd.getLatitude();
++//                            double endLong = tMapPointEnd.getLongitude();
++//
++//                            //출발지 목적지 좌표 비교
++//                            double bigLat = Math.max(startLat, endLat);
++//                            double smallLat = Math.min(startLat, endLat);
++//                            double bigLong = Math.max(startLong, endLong);
++//                            double smallLong = Math.min(startLong, endLong);
++//
++//                            //안심길찾기 경유지 설정
++//
++//                            FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance("https://gg-map-21058.firebaseio.com");
++//                            firebaseDatabase.getReference("location").addValueEventListener(new ValueEventListener() {
++//                                @Override
++//                                public void onDataChange(@NonNull DataSnapshot snapshot) {
++//
++//                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
++//                                        Camera camera = dataSnapshot.getValue(Camera.class);
++//
++//                                        cameraList.add(camera);
++//
++//                                    }
++//                                    //반경 n미터 이내만 불러오기
++//                                    for(Camera s : cameraList) {
++//                                        double lat = s.getLatitude();
++//                                        double lon = s.getLongitude();
++//                                        double newSmallLat = smallLat - 0.0005;
++//                                        double newBigLat = bigLat + 0.0005;
++//                                        double newSmallLong = smallLong + 0.0005;
++//                                        double newBigLong = bigLong+ 0.0005;
++//
++//                                        if (newSmallLat <= lat && lat <= newBigLat) {
++//
++//                                            System.out.println(lat);
++//                                            if (lon >= newSmallLong && lon <= newBigLong) {
++//                                                String key = s.getKey();
++//                                                keyList.add(key);
++//                                                System.out.println(key);
++//
++//
++//
++//                                            }
++//                                            else {
++//                                                System.out.println("이건 안됨");
++//                                            }
++//                                        }
++//                                        else {
++//                                            System.out.println("이건안됨");
++//                                        }
++//                                    }
++//
++//                                    firebaseDatabase.getReference("person").addValueEventListener(new ValueEventListener() {
++//                                        @Override
++//                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
++//
++//                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
++//
++//                                                String getKey = dataSnapshot.getKey();
++//
++//                                                //인적수 가져오기
++//                                                for (String key : keyList){
++//                                                    if(getKey.equals(key)){
++//                                                        String n1 = dataSnapshot.getValue(String.class);
++//                                                        int num = Integer.parseInt(n1);
++//
++//
++//                                                        //인적 5이상만 안심길찾기 경로에 넣음
++//                                                        if (num >= 5) {
++//                                                            for (Camera n : cameraList){
++//                                                                String s = n.getKey();
++//                                                                if (s.equals(key)){
++//                                                                    double finalLon = n.getLongitude();
++//                                                                    double finalLat = n.getLatitude();
++//                                                                    System.out.println("+++++++"+finalLat);
++//
++//
++//                                                                    passListPoint = new TMapPoint(finalLat, finalLon);
++//                                                                    passList.add(passListPoint);
++//
++//                                                                }
++//                                                            }
++//
++//                                                        }
++//
++//
++//                                                    }
++//
++//                                                }
++//
++//
++//                                            }
++//
++//                                            ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
++//                                            ArrayList<ArrayList<TMapPoint>> haha = new ArrayList<>();
++//                                            int a = passList.size();
++//                                            System.out.println(a);
++//
++//                                            for (int inx =1; inx <= a; inx++) {
++//                                                pick(a, new ArrayList<Integer>(), inx, result);
++//                                            }
++//
++//
++//
++//
++//                                            for (ArrayList<Integer> arrayList : result) {
++//                                                ArrayList<TMapPoint> tlist = new ArrayList<>();
++//                                                int size = arrayList.size();
++//
++//                                                for (int b = 0; b < size; b++){
++//                                                    int num = arrayList.get(b);
++//                                                    TMapPoint point = passList.get(num);
++//
++//                                                    tlist.add(point);
++//                                                }
++//                                                haha.add(tlist);
++//                                                System.out.println("00"+ arrayList);
++//                                            }
++//
++//
++//                                                new Thread(){
++//                                                    @Override
++//                                                    public void run() {
++//                                                        try {
++//
++//                                                            for(ArrayList<TMapPoint> m : haha){
++//
++//                                                                System.out.println("====="+m);
++//                                                                TMapPolyLine line = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, m, 0);
++//                                                                //tMapView.addTMapPolyLine("line", line);
++//
++//                                                                double a2 = line.getDistance();
++//                                                                System.out.println(a2);
++//                                                                if (a2 != 0.0){
++//                                                                    finalList.put(a2, m);
++//                                                                    numList.add(a2);
++//                                                                    Thread.sleep(500);
++//                                                                }
++//                                                                //tMapView.removeAllTMapPolyLine();
++//
++//                                                            }
++//
++//
++//                                                            Double minNum = Collections.min(numList);
++//                                                            System.out.println(minNum);
++//                                                            passList2 = finalList.get(minNum);
++//
++//                                                            TMapPolyLine tMapPolyLine1 = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd);
++//                                                            tMapPolyLine1.setLineColor(Color.BLUE);
++//                                                            tMapPolyLine1.setLineWidth(20);
++//                                                            tMapPolyLine1.setOutLineWidth(20);
++//                                                            tMapPolyLine1.setLineColor(Color.parseColor("#3094ff"));
++//                                                            tMapPolyLine1.setOutLineColor(Color.parseColor("#002247"));
++//                                                            tMapView.addTMapPolyLine("PolyLine_streetfind", tMapPolyLine1);
++//
++//                                                            double Distance = tMapPolyLine1.getDistance();
++//                                                            Thread.sleep(500);
++//
++//
++//
++//
++//                                                            //안심길찾기
++//                                                            TMapPolyLine tMapPolyLine = new TMapData().findPathDataWithType(TMapData.TMapPathType.PEDESTRIAN_PATH, tMapPointStart, tMapPointEnd, passList2, 0);
++//                                                            tMapPolyLine.setLineColor(Color.RED);
++//                                                            if(passList2.size() == 0) {
++//                                                                System.out.println("비어있음!!");
++//                                                            } else {
++//                                                                System.out.println("안에있음@@");
++//                                                            }
++//                                                            tMapPolyLine.setLineWidth(10);
++//                                                            tMapPolyLine.setOutLineWidth(10);
++//                                                            tMapPolyLine.setLineColor(Color.parseColor("#FF0000"));
++//                                                            tMapPolyLine.setOutLineColor(Color.parseColor("#FF0000"));
++//                                                            tMapView.addTMapPolyLine("PolyLine_streetfind1", tMapPolyLine);
++//
++//                                                            double Distance2 = tMapPolyLine.getDistance();
++//
++//
++//
++//                                                            // 시간, 거리 보여주기
++//                                                            runOnUiThread(new Runnable() {
++//                                                                @Override
++//                                                                public void run() {
++//                                                                    int a = (int) Math.round(Distance);
++//                                                                    int b = (int) Math.round(Distance2);
++//
++//                                                                    shortestTime.setText((int) Math.round(a*0.016)+"분\n" +a + "m" );
++//                                                                    safteyTime.setText((int) Math.round(b*0.016)+"분\n" +b + "m");
++//
++//                                                                    findViewById(R.id.saftey_distance_btn).setOnClickListener(new View.OnClickListener() {
++//                                                                        @Override
++//                                                                        public void onClick(View view) {
++//                                                                            tMapView.removeAllTMapPolyLine();
++//                                                                            tMapView.addTMapPolyLine("saftey", tMapPolyLine);
++//
++//
++//                                                                        }
++//                                                                    });
++//
++//                                                                    findViewById(R.id.shortest_distance_btn).setOnClickListener(new View.OnClickListener() {
++//                                                                        @Override
++//                                                                        public void onClick(View view) {
++//                                                                            tMapView.removeAllTMapPolyLine();
++//                                                                            tMapView.addTMapPolyLine("short", tMapPolyLine1);
++//                                                                        }
++//                                                                    });
++//
++//                                                                }
++//                                                            });
++//
++//
++//
++//                                                        } catch (IOException | ParserConfigurationException | SAXException | InterruptedException e) {
++//                                                            e.printStackTrace();
++//                                                        }
++//
++//                                                    }
++//                                                }.start();
++//
++//
++//
++//
++//
++//
++//
++//
++//
++//
++//
++//                                        }
++//
++//                                        @Override
++//                                        public void onCancelled(@NonNull DatabaseError error) {
++//
++//                                        }
++//                                    });
++//
++//
++//
++//
++//                                    //보행자 경로로 PolyLine 띄우기
++//                                    new Thread() {
++//                                        @Override
++//                                        public void run() {
++//                                            try {
++//                                                //최단길찾기
++//
++//
++//
++//
++//                                            } catch (Exception e) {
++//                                                e.printStackTrace();
++//                                            }
++//
++//                                        }
++//                                    }.start();
++//
++//                                }
++//
++//
++//
++//                                @Override
++//                                public void onCancelled(@NonNull DatabaseError databaseError){
++//
++//                                }
++//
++//                            });
++//                            //ddddddddd
++//
++//
++//
++//                        }
++//
++//                    });
++//                }
++//                tMapView.setCenterPoint(tMapPoint.getLongitude(),tMapPoint.getLatitude());
++//            }
++//
++//        });
++//
++//
++//
++//
++//
++//        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
++//            @Override
++//            public void onClick(View view) {
++//                finish();
++//                passList.clear();
++//            }
++//        });
++//
++//        findViewById(R.id.btn_close).setOnClickListener(new View.OnClickListener() {
++//            @Override
++//            public void onClick(View view) {
++//                finish();
++//                passList.clear();
++//            }
++//        });
++//
++//    }
++//
++//
++//    private static void pick(int n, ArrayList<Integer> picked, int toPick, ArrayList<ArrayList<Integer>> collection) {
++//
++//        if (toPick == 0) {
++//            //System.out.println(picked);
++//            collection.add(picked);
++//            return;
++//        }
++//
++//        int smallest = picked.isEmpty() ? 0 : picked.get(picked.size() - 1) + 1;
++//
++//        for (int next = smallest; next < n; next++) {
++//            picked.add(next);
++//            pick(n, new ArrayList<Integer>(picked), toPick - 1, collection);
++//            picked.remove(picked.size() - 1);
++//        }
++//    }
++//
++//}
+Index: app/src/main/res/layout/activity_search_result.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/activity_search_result.xml b/app/src/main/res/layout/activity_search_result.xml
+deleted file mode 100644
+--- a/app/src/main/res/layout/activity_search_result.xml	
++++ /dev/null	
+@@ -1,280 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
+-    xmlns:app="http://schemas.android.com/apk/res-auto"
+-    xmlns:tools="http://schemas.android.com/tools"
+-    android:layout_width="match_parent"
+-    android:layout_height="match_parent"
+-    tools:context=".SearchResultActivity"
+-    android:gravity="bottom"
+-    app:umanoDragView="@id/dragView"
+-
+-    app:umanoPanelHeight="70dp"
+-    app:umanoOverlay="false"
+-    app:umanoParallaxOffset="0sp"
+-    android:id="@+id/panelLayout">
+-<!--    app:umanoShadowHeight="10dp"-->
+-    <!-- gravity 를 bottom으로 하면 아래에서 위로 드래그, top으로 하면 위에서 아래로 드래그 할 수 있다.
+-         umanoDragView 드래그 해서 보여줄 view를 선택
+-         umanoScrollableView  슬라이딩 패널에 내용물이 패널에 표시되는것보다 많을 때 스크롤 해서 보여줄 view 부분
+-         umanoParallaxOffset 에 값을 주면 해당 높이만큼 뒤에 화면을 올려준다.
+-         umanoShadowHeight 는 슬라이딩 패널 윗부분에 그림자 효과
+-         umanoOverlay 를 false로 해주면 슬라이딩 패널이 위로 보이고 뒷 부분은 반투명하게 보인다. -->
+-
+-    <FrameLayout
+-        android:id="@+id/layout_Tmap"
+-        android:layout_width="match_parent"
+-        android:layout_height="match_parent">
+-
+-        <LinearLayout
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content"
+-            android:layout_gravity="top"
+-            android:background="@color/white"
+-            android:elevation="3dp"
+-            android:orientation="horizontal"
+-            android:paddingTop="10dp"
+-            android:paddingBottom="10dp">
+-
+-            <ImageButton
+-                android:id="@+id/btn_back"
+-                android:layout_width="30dp"
+-                android:layout_height="30dp"
+-                android:layout_gravity="center"
+-                android:layout_marginStart="7dp"
+-                android:backgroundTint="#00FFFFFF"
+-                android:src="@drawable/ic_round_arrow_back_24"
+-                app:tint="#505050" />
+-
+-            <TextView
+-                android:id="@+id/tv_search_address2"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:layout_gravity="center"
+-                android:layout_marginStart="10dp"
+-                android:layout_weight="1"
+-                android:background="#00FFFFFF"
+-                android:maxLines="1"
+-                android:text="주소 검색"
+-                android:textSize="13.5sp" />
+-
+-            <ImageButton
+-                android:id="@+id/btn_close"
+-                android:layout_width="30dp"
+-                android:layout_height="30dp"
+-                android:layout_gravity="center"
+-                android:layout_marginStart="7dp"
+-                android:layout_marginEnd="7dp"
+-                android:backgroundTint="#00FFFFFF"
+-                android:src="@drawable/ic_round_close_24"
+-                app:tint="#505050" />
+-
+-        </LinearLayout>
+-
+-        <Button
+-            android:id="@+id/btn_set_start"
+-            android:layout_width="150dp"
+-            android:layout_height="40dp"
+-            android:layout_gravity="left"
+-            android:layout_marginLeft="10dp"
+-            android:layout_marginTop="60dp"
+-            android:background="#FFFFFF"
+-            android:text="출발지 선택" />
+-
+-        <Button
+-            android:id="@+id/btn_set_end"
+-            android:layout_width="150dp"
+-            android:layout_height="40dp"
+-            android:layout_gravity="left"
+-            android:layout_marginTop="60dp"
+-            android:layout_marginLeft="170dp"
+-            android:background="#FFFFFF"
+-            android:text="도착지 선택" />
+-
+-        <ImageButton
+-            android:id="@+id/btn_streetfind"
+-            android:layout_width="40dp"
+-            android:layout_height="40dp"
+-            android:layout_gravity="right"
+-            android:layout_marginTop="60dp"
+-            android:layout_marginRight="10dp"
+-            android:layout_weight="1"
+-            android:background="@drawable/rect_round_button"
+-            android:backgroundTint="#0060F1"
+-            android:elevation="3dp"
+-            android:padding="10dp"
+-            android:scaleType="centerCrop"
+-            android:src="@drawable/ic_btn_streetfind" />
+-
+-    </FrameLayout>
+-
+-    <TableLayout
+-        android:layout_width="match_parent"
+-        android:layout_height="wrap_content"
+-        android:id="@+id/dragView">
+-
+-        <TableRow>
+-            <TextView
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:paddingLeft="16sp"
+-                android:paddingTop="16sp"
+-                android:text="안심 경로"
+-                android:textColor="#4457FF"
+-                android:textSize="29dp" />
+-
+-        </TableRow>
+-        <TableRow>
+-            <TextView
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:paddingLeft="16sp"
+-                android:layout_marginLeft="110sp"
+-                android:layout_gravity="right"
+-                android:id="@+id/saftey_time"
+-                android:textColor="@color/black"
+-                android:textSize="20dp" />
+-
+-            <Button
+-                android:id="@+id/saftey_distance_btn"
+-                android:layout_width="50dp"
+-                android:layout_height="40dp"
+-                android:layout_gravity="right"
+-                android:layout_marginTop="16sp"
+-                android:layout_marginRight="16sp"
+-                android:background="#4457FF"
+-                android:text="안내"
+-                android:textColor="@color/white"/>
+-
+-        </TableRow>
+-
+-        <TableRow>
+-            <TextView
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:paddingLeft="16sp"
+-                android:paddingTop="16sp"
+-                android:text="최단 경로"
+-                android:textColor="#F90000"
+-                android:textSize="29dp" />
+-
+-        </TableRow>
+-        <TableRow>
+-            <TextView
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:paddingLeft="16sp"
+-                android:layout_marginLeft="110sp"
+-                android:layout_gravity="right"
+-                android:id="@+id/shortest_time"
+-                android:textColor="@color/black"
+-                android:textSize="20dp" />
+-
+-            <Button
+-                android:id="@+id/shortest_distance_btn"
+-                android:layout_width="50dp"
+-                android:layout_height="40dp"
+-                android:layout_gravity="right"
+-                android:layout_marginTop="16sp"
+-                android:layout_marginRight="16sp"
+-                android:background="#F90000"
+-                android:text="안내"
+-                android:textColor="@color/white"/>
+-
+-        </TableRow>
+-
+-    </TableLayout>
+-
+-            <!-- 올라오는 화면을 꽉 채우고 싶다면 match_parent, 내용물 만큼만 보이고 뒷 배경이 반투명처리로 보이고 싶다면 wrap_content-->
+-<!--            <LinearLayout-->
+-<!--                android:id="@+id/dragView"-->
+-<!--                android:layout_width="match_parent"-->
+-<!--                android:layout_height="wrap_content"-->
+-<!--                android:clickable="true"-->
+-<!--                android:focusable="false"-->
+-<!--                android:orientation="vertical"-->
+-<!--                android:background="@drawable/layout_topround">-->
+-
+-<!--                    <TextView-->
+-<!--                        android:layout_width="wrap_content"-->
+-<!--                        android:layout_height="wrap_content"-->
+-<!--                        android:paddingLeft="16sp"-->
+-<!--                        android:paddingTop="16sp"-->
+-<!--                        android:text="안심 경로"-->
+-<!--                        android:textColor="#4457FF"-->
+-<!--                        android:textSize="29dp" />-->
+-
+-<!--                    <TextView-->
+-<!--                        android:layout_width="wrap_content"-->
+-<!--                        android:layout_height="wrap_content"-->
+-<!--                        android:paddingLeft="16sp"-->
+-<!--                        android:layout_gravity="right"-->
+-<!--                        android:id="@+id/saftey_time"-->
+-<!--                        android:textColor="@color/black"-->
+-<!--                        android:textSize="20dp" />-->
+-
+-<!--                    <TextView-->
+-<!--                        android:layout_width="wrap_content"-->
+-<!--                        android:layout_height="wrap_content"-->
+-<!--                        android:paddingLeft="16sp"-->
+-<!--                        android:layout_gravity="right"-->
+-<!--                        android:id="@+id/saftey_distance"-->
+-<!--                        android:textColor="@color/black"-->
+-<!--                        android:textSize="18dp" />-->
+-
+-<!--                    <Button-->
+-<!--                        android:id="@+id/saftey_distance_btn"-->
+-<!--                        android:layout_width="50dp"-->
+-<!--                        android:layout_height="40dp"-->
+-<!--                        android:layout_gravity="right"-->
+-<!--                        android:layout_marginTop="16sp"-->
+-<!--                        android:layout_marginRight="16sp"-->
+-<!--                        android:background="#4457FF"-->
+-<!--                        android:text="안내"-->
+-<!--                        android:textColor="@color/white"/>-->
+-
+-<!--                    <TextView-->
+-<!--                        android:layout_width="wrap_content"-->
+-<!--                        android:layout_height="wrap_content"-->
+-<!--                        android:paddingLeft="16sp"-->
+-<!--                        android:text="최단 경로"-->
+-<!--                        android:layout_gravity="right"-->
+-<!--                        android:textColor="#F90000"-->
+-<!--                        android:textSize="29dp" />-->
+-
+-<!--                    <TextView-->
+-<!--                        android:layout_width="wrap_content"-->
+-<!--                        android:layout_height="wrap_content"-->
+-<!--                        android:paddingLeft="16sp"-->
+-<!--                        android:id="@+id/shortest_time"-->
+-<!--                        android:layout_gravity="right"-->
+-<!--                        android:textColor="@color/black"-->
+-<!--                        android:textSize="20dp" />-->
+-<!--                    <TextView-->
+-<!--                        android:layout_width="wrap_content"-->
+-<!--                        android:layout_height="wrap_content"-->
+-<!--                        android:paddingLeft="16sp"-->
+-<!--                        android:id="@+id/shortest_distance"-->
+-<!--                        android:textColor="@color/black"-->
+-<!--                        android:textSize="24sp" />-->
+-<!--                    <Button-->
+-<!--                        android:id="@+id/shortest_distance_btn"-->
+-<!--                        android:layout_width="50dp"-->
+-<!--                        android:layout_height="40dp"-->
+-<!--                        android:layout_gravity="right"-->
+-<!--                        android:layout_marginTop="16sp"-->
+-<!--                        android:layout_marginRight="16sp"-->
+-<!--                        android:background="#F90000"-->
+-<!--                        android:textColor="@color/white"-->
+-<!--                        android:text="안내" />-->
+-
+-
+-<!--                &lt;!&ndash; 스크롤 해서 보여줄 부분은 listview 또는 custom listview 또는 recyclerview를 사용 &ndash;&gt;-->
+-
+-
+-<!--            </LinearLayout>-->
+-
+-
+-
+-
+-
+-</com.sothree.slidinguppanel.SlidingUpPanelLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/ggmap/SearchActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.ggmap;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport androidx.core.splashscreen.SplashScreen;\r\n\r\nimport android.content.Intent;\r\nimport android.graphics.Bitmap;\r\nimport android.graphics.BitmapFactory;\r\nimport android.os.Bundle;\r\nimport android.view.KeyEvent;\r\nimport android.view.View;\r\nimport android.view.inputmethod.InputMethodManager;\r\nimport android.widget.EditText;\r\nimport android.widget.Toast;\r\n\r\nimport com.skt.Tmap.TMapData;\r\nimport com.skt.Tmap.TMapMarkerItem;\r\nimport com.skt.Tmap.TMapPoint;\r\nimport com.skt.Tmap.poi_item.TMapPOIItem;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.Arrays;\r\n\r\npublic class SearchActivity extends AppCompatActivity {\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_search);\r\n\r\n        EditText search_address = findViewById(R.id.et_search_address);\r\n        //검색창\r\n        search_address.setOnKeyListener(new View.OnKeyListener() {\r\n            @Override\r\n            public boolean onKey(View view, int i, KeyEvent keyEvent) {\r\n                switch (i){\r\n                    case KeyEvent.KEYCODE_ENTER:\r\n                        String address = search_address.getText().toString();\r\n                        if(address.length()==0){\r\n                            Toast.makeText(getApplicationContext(),\"검색어를 입력해주세요\",Toast.LENGTH_SHORT).show();\r\n                        }\r\n                        else{\r\n                            InputMethodManager imm = (InputMethodManager) getSystemService(MainActivity.INPUT_METHOD_SERVICE);\r\n                            imm.hideSoftInputFromWindow(search_address.getWindowToken(), 0);\r\n\r\n                            Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);\r\n                            intent.putExtra(\"address\", address);\r\n                            startActivity(intent);\r\n\r\n                        }\r\n                        break;\r\n                }\r\n                return true;\r\n            }\r\n        });\r\n\r\n        findViewById(R.id.ll_myLocation).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                //위치 받아오기\r\n            }\r\n        });\r\n\r\n\r\n        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View view) {\r\n                finish();\r\n            }\r\n        });\r\n\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/ggmap/SearchActivity.java b/app/src/main/java/com/example/ggmap/SearchActivity.java
+--- a/app/src/main/java/com/example/ggmap/SearchActivity.java	
++++ b/app/src/main/java/com/example/ggmap/SearchActivity.java	
+@@ -1,74 +1,74 @@
+-package com.example.ggmap;
+-
+-import androidx.appcompat.app.AppCompatActivity;
+-import androidx.core.splashscreen.SplashScreen;
+-
+-import android.content.Intent;
+-import android.graphics.Bitmap;
+-import android.graphics.BitmapFactory;
+-import android.os.Bundle;
+-import android.view.KeyEvent;
+-import android.view.View;
+-import android.view.inputmethod.InputMethodManager;
+-import android.widget.EditText;
+-import android.widget.Toast;
+-
+-import com.skt.Tmap.TMapData;
+-import com.skt.Tmap.TMapMarkerItem;
+-import com.skt.Tmap.TMapPoint;
+-import com.skt.Tmap.poi_item.TMapPOIItem;
+-
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-
+-public class SearchActivity extends AppCompatActivity {
+-
+-    @Override
+-    protected void onCreate(Bundle savedInstanceState) {
+-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+-        super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_search);
+-
+-        EditText search_address = findViewById(R.id.et_search_address);
+-        //검색창
+-        search_address.setOnKeyListener(new View.OnKeyListener() {
+-            @Override
+-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+-                switch (i){
+-                    case KeyEvent.KEYCODE_ENTER:
+-                        String address = search_address.getText().toString();
+-                        if(address.length()==0){
+-                            Toast.makeText(getApplicationContext(),"검색어를 입력해주세요",Toast.LENGTH_SHORT).show();
+-                        }
+-                        else{
+-                            InputMethodManager imm = (InputMethodManager) getSystemService(MainActivity.INPUT_METHOD_SERVICE);
+-                            imm.hideSoftInputFromWindow(search_address.getWindowToken(), 0);
+-
+-                            Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
+-                            intent.putExtra("address", address);
+-                            startActivity(intent);
+-
+-                        }
+-                        break;
+-                }
+-                return true;
+-            }
+-        });
+-
+-        findViewById(R.id.ll_myLocation).setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View v) {
+-                //위치 받아오기
+-            }
+-        });
+-
+-
+-        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
+-            @Override
+-            public void onClick(View view) {
+-                finish();
+-            }
+-        });
+-
+-    }
+-}
+\ No newline at end of file
++//package com.example.ggmap;
++//
++//import androidx.appcompat.app.AppCompatActivity;
++//import androidx.core.splashscreen.SplashScreen;
++//
++//import android.content.Intent;
++//import android.graphics.Bitmap;
++//import android.graphics.BitmapFactory;
++//import android.os.Bundle;
++//import android.view.KeyEvent;
++//import android.view.View;
++//import android.view.inputmethod.InputMethodManager;
++//import android.widget.EditText;
++//import android.widget.Toast;
++//
++//import com.skt.Tmap.TMapData;
++//import com.skt.Tmap.TMapMarkerItem;
++//import com.skt.Tmap.TMapPoint;
++//import com.skt.Tmap.poi_item.TMapPOIItem;
++//
++//import java.util.ArrayList;
++//import java.util.Arrays;
++//
++//public class SearchActivity extends AppCompatActivity {
++//
++//    @Override
++//    protected void onCreate(Bundle savedInstanceState) {
++//        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
++//        super.onCreate(savedInstanceState);
++//        setContentView(R.layout.activity_search);
++//
++//        EditText search_address = findViewById(R.id.et_search_address);
++//        //검색창
++//        search_address.setOnKeyListener(new View.OnKeyListener() {
++//            @Override
++//            public boolean onKey(View view, int i, KeyEvent keyEvent) {
++//                switch (i){
++//                    case KeyEvent.KEYCODE_ENTER:
++//                        String address = search_address.getText().toString();
++//                        if(address.length()==0){
++//                            Toast.makeText(getApplicationContext(),"검색어를 입력해주세요",Toast.LENGTH_SHORT).show();
++//                        }
++//                        else{
++//                            InputMethodManager imm = (InputMethodManager) getSystemService(MainActivity.INPUT_METHOD_SERVICE);
++//                            imm.hideSoftInputFromWindow(search_address.getWindowToken(), 0);
++//
++//                            Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
++//                            intent.putExtra("address", address);
++//                            startActivity(intent);
++//
++//                        }
++//                        break;
++//                }
++//                return true;
++//            }
++//        });
++//
++//        findViewById(R.id.ll_myLocation).setOnClickListener(new View.OnClickListener() {
++//            @Override
++//            public void onClick(View v) {
++//                //위치 받아오기
++//            }
++//        });
++//
++//
++//        findViewById(R.id.btn_back).setOnClickListener(new View.OnClickListener() {
++//            @Override
++//            public void onClick(View view) {
++//                finish();
++//            }
++//        });
++//
++//    }
++//}
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"DesignSurface\">\r\n    <option name=\"filePathToZoomLevelMap\">\r\n      <map>\r\n        <entry key=\"..\\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_human_check.xml\" value=\"0.2504528985507246\" />\r\n        <entry key=\"..\\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_main.xml\" value=\"0.2504528985507246\" />\r\n        <entry key=\"..\\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_search_path.xml\" value=\"0.3619791666666667\" />\r\n        <entry key=\"..\\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_search_path_result.xml\" value=\"0.25625\" />\r\n        <entry key=\"..\\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/activity_search_result.xml\" value=\"0.2504528985507246\" />\r\n        <entry key=\"..\\:/AndroidStudioProjects/GGMapDemo/app/src/main/res/layout/drawer_header.xml\" value=\"0.2504528985507246\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable-v24/ic_launcher_foreground.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_location.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_location_background.xml\" value=\"0.1865\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/ic_outline_my_location_24.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_main.xml\" value=\"0.19411764705882353\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_map.xml\" value=\"0.33\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_search.xml\" value=\"0.33\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_search_result.xml\" value=\"0.17603850050658562\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/layout/drawer_header.xml\" value=\"0.17401215805471124\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/menu/drawer_menu.xml\" value=\"0.2537037037037037\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_location.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_location_round.xml\" value=\"0.1665\" />\r\n        <entry key=\"..\\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/layout_round.xml\" value=\"0.1\" />\r\n        <entry key=\"..\\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/layout_topround.xml\" value=\"0.1\" />\r\n        <entry key=\"..\\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_search_result.xml\" value=\"0.1\" />\r\n        <entry key=\"app/src/main/res/drawable/drawer_header.xml\" value=\"0.2095\" />\r\n        <entry key=\"app/src/main/res/drawable/layout_round.xml\" value=\"0.115\" />\r\n        <entry key=\"app/src/main/res/drawable/rect_round_button.xml\" value=\"0.2095\" />\r\n        <entry key=\"app/src/main/res/drawable/rect_round_edit.xml\" value=\"0.2095\" />\r\n        <entry key=\"app/src/main/res/layout/activity_human_check.xml\" value=\"0.23233695652173914\" />\r\n        <entry key=\"app/src/main/res/layout/activity_main.xml\" value=\"0.25\" />\r\n        <entry key=\"app/src/main/res/layout/activity_map.xml\" value=\"0.335\" />\r\n        <entry key=\"app/src/main/res/layout/activity_search.xml\" value=\"0.303125\" />\r\n        <entry key=\"app/src/main/res/layout/activity_search_path.xml\" value=\"0.26792602539062493\" />\r\n        <entry key=\"app/src/main/res/layout/activity_search_path_result.xml\" value=\"0.28177093505859374\" />\r\n        <entry key=\"app/src/main/res/layout/activity_search_result.xml\" value=\"0.303125\" />\r\n        <entry key=\"app/src/main/res/layout/activity_splash.xml\" value=\"0.25\" />\r\n        <entry key=\"app/src/main/res/layout/drawer_header.xml\" value=\"0.24320652173913043\" />\r\n        <entry key=\"app/src/main/res/menu/drawer_menu.xml\" value=\"0.2760416666666667\" />\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_11\" default=\"true\" project-jdk-name=\"11\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	
++++ b/.idea/misc.xml	
+@@ -25,6 +25,7 @@
+         <entry key="..\:/Users/ksh_8/AndroidStudioProjects/GG-Map/app/src/main/res/mipmap-anydpi-v26/ic_location_round.xml" value="0.1665" />
+         <entry key="..\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/layout_round.xml" value="0.1" />
+         <entry key="..\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/drawable/layout_topround.xml" value="0.1" />
++        <entry key="..\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_new_search_result.xml" value="0.264" />
+         <entry key="..\:/Users/sarah/AndroidStudioProjects/GG-Map/app/src/main/res/layout/activity_search_result.xml" value="0.1" />
+         <entry key="app/src/main/res/drawable/drawer_header.xml" value="0.2095" />
+         <entry key="app/src/main/res/drawable/layout_round.xml" value="0.115" />
