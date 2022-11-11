@@ -65,6 +65,10 @@ import com.skt.Tmap.TMapTapi;
 import com.skt.Tmap.TMapView;
 import com.skt.Tmap.poi_item.TMapPOIItem;
 
+import db.DataBaseHelper;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     private TMapView tMapView;
     private LocationManager locationManager;
     private ActivityResultLauncher<String[]> locationPermissionRequest;
+    private boolean cctvButton = false;
+    private final ArrayList<SungBookCCTV> sungbookCCTVArrayList = new ArrayList<>();
+    private final ArrayList<TMapMarkerItem> markerCCTVItems = new ArrayList<>();
 
     boolean keep = true;
     private final Runnable runner = new Runnable() {
@@ -161,6 +168,44 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //====================
+        findViewById(R.id.btn_cctv).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int a = 0;
+                Bitmap cctvBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.icon_cctv);
+
+                if (cctvButton) {
+                    cctvButton = false;
+                    for (SungBookCCTV sungBookCCTV : sungbookCCTVArrayList) {
+                        markerCCTVItems.clear();
+                        tMapView.removeMarkerItem("sbCCTVLocation" + a);
+                        a++;
+                    }
+                } else {
+                    cctvButton = true;
+                    for (SungBookCCTV sungBookCCTV : sungbookCCTVArrayList) {
+                        double lat = sungBookCCTV.getLatitude();      // 위도
+                        double lon = sungBookCCTV.getLongitude();     // 경도
+
+                        // TMapPoint
+                        markerCCTVItems.add(new TMapMarkerItem());
+                        TMapPoint tMapPoint = new TMapPoint(lat, lon);
+
+                        markerCCTVItems.get(a).setIcon(cctvBitmap);                 // bitmap를 Marker icon으로 사용
+                        markerCCTVItems.get(a).setPosition(0.5f, 1.0f);  // Marker img의 position
+                        markerCCTVItems.get(a).setTMapPoint(tMapPoint);         // Marker의 위치
+
+                        // id로 Marker을 식별
+                        tMapView.addMarkerItem("sbCCTVLocation" + a, markerCCTVItems.get(a));
+                        a++;
+                    }
+                }
+            }
+        });
+
+        //====================
+
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -233,30 +278,39 @@ public class MainActivity extends AppCompatActivity {
 
     } // end of onCreate()
 
+
+    //==============요기도
+    FirebaseDatabase cctvDatabase = FirebaseDatabase.getInstance("https://gg-map-21058-f020f.firebaseio.com/");
+    DatabaseReference cctvReference = cctvDatabase.getReference().child("성북구").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    int a = 0;
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        SungBookCCTV sungBookCCTV = dataSnapshot.getValue(SungBookCCTV.class);
+                        sungbookCCTVArrayList.add(sungBookCCTV);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+
+//    cctvReference.child("성북구").addValueEventListener(valueEventListener);
+//
+//    FirebaseDatabase cctvDatabase = FirebaseDatabase.getInstance("https://gg-map-21058-f020f.firebaseio.com/");
+//    cctvDatabase.getReference().addValueEventListener(new ValueEventListener() {
+//    })
+
+    //??
     private final ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot snapshot) {
-            Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
-            for (DataSnapshot dataSnapshot: snapshot.getChildren()) {
-
-                int a=0;
-                //GwangjinStreetLight gwangjinStreetLight = snapshot.getValue(GwangjinStreetLight.class);
-                System.out.println(dataSnapshot.getValue());/*
-                double lat = gwangjinStreetLight.getLatitude();      // 위도
-                double lon = gwangjinStreetLight.getLongitude();     // 경도
-
-                // TMapPoint
-                TMapPoint tMapPoint = new TMapPoint(lat, lon);
-                TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
-
-                tMapMarkerItem.setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용
-                tMapMarkerItem.setPosition(0.5f, 1.0f);  // Marker img의 position
-                tMapMarkerItem.setTMapPoint(tMapPoint);         // Marker의 위치
-
-                // add Marker on T Map View
-                // id로 Marker을 식별
-                tMapView.addMarkerItem("gjStreetLightsLocation" + a, tMapMarkerItem);
-                a++;*/
+            int a = 0;
+            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                SungBookCCTV sungBookCCTV = dataSnapshot.getValue(SungBookCCTV.class);
+                sungbookCCTVArrayList.add(sungBookCCTV);
             }
         }
 
@@ -265,6 +319,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+    //==================
 
     public void getMyLocation() {
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -309,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
             tMapView.setCenterPoint(tMapPointStart.getLongitude(), tMapPointStart.getLatitude());
         }
     };
+
+
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
