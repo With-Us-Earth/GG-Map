@@ -14,11 +14,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +36,6 @@ import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -76,18 +77,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Splash
-        /*splashScreen.setKeepOnScreenCondition(new SplashScreen.KeepOnScreenCondition() {
+        splashScreen.setKeepOnScreenCondition(new SplashScreen.KeepOnScreenCondition() {
             @Override
             public boolean shouldKeepOnScreen() {
                 return keep;
             }
         });
         Handler handler = new Handler();
-        handler.postDelayed(runner, 3000);*/
+        handler.postDelayed(runner, 3000);
 
         //TMap initial
         tMapView = new TMapView(this);
-        tMapView.setSKTMapApiKey("l7xx18a7622afffe4a6191d0850d7beae5e0");
+        tMapView.setSKTMapApiKey("l7xx59b89a7b7f8c439c99f5a86b7ec86fc6");
         tMapView.setHttpsMode(true);
         tMapView.setZoomLevel(17);
         tMapView.setRotateEnable(true);
@@ -212,7 +213,22 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_myLocation).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getMyLocation();
+
+                //마커 생성
+                TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
+                TMapPoint tMapPointStart = new TMapPoint(37.591288388873, 127.02096562434);
+
+                Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);
+
+                //출발지 마커
+                tMapMarkerItem.setIcon(bitmap_start); // 마커 아이콘 지정
+                tMapMarkerItem.setPosition(0.5f, 1.0f); // 마커의 중심점을 중앙, 하단으로 설정
+                tMapMarkerItem.setTMapPoint(tMapPointStart); // 마커의 좌표 지정
+                tMapMarkerItem.setName("GPGP"); // 마커의 타이틀 지정
+                tMapView.addMarkerItem("myLocation", tMapMarkerItem); // 지도에 마커 추가
+                tMapView.setCenterPoint(tMapPointStart.getLongitude(), tMapPointStart.getLatitude());
+
+                //getMyLocation();
                 //tMapView.setTrackingMode(true);
                 tMapView.setCompassMode(!tMapView.getIsCompass());
             }
@@ -246,6 +262,10 @@ public class MainActivity extends AppCompatActivity {
                 Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
                 ImageView imageView = findViewById(R.id.btn_light);
 
+                Location location2 = new Location("hi");
+                location2.setLongitude(127.02096562434);
+                location2.setLatitude(37.591288388873);
+
                 Location locationA = new Location("streetlight");
 
                 if (lightButton) {
@@ -268,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
 
                         locationA.setLatitude(lat);
                         locationA.setLongitude(lon);
-                        float distance = location.distanceTo(locationA);
+                        float distance = location2.distanceTo(locationA);
 
                         if(distance <= 250) {
                             createLightMarker(a, b, lat, lon, lightBitmap);
@@ -332,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
             TMapMarkerItem tMapMarkerItem = new TMapMarkerItem();
             TMapPoint tMapPointStart = new TMapPoint(latitude, longitude);
 
-            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.img_1);
+            Bitmap bitmap_start = BitmapFactory.decodeResource(getResources(), R.drawable.icon_my_location);
 
             TextView textView = findViewById(R.id.tv_search_address);
             textView.setText("위도: " + latitude + "경도: " + longitude);
@@ -375,6 +395,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String getAddress(double lat, double lon){
+        Geocoder geocoder = new Geocoder(this);
         String address = null;
 
 
