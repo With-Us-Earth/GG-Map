@@ -5,6 +5,12 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 public class EmergencyCallActivity extends AppCompatActivity {
     @Override
@@ -15,4 +21,7 @@ public class EmergencyCallActivity extends AppCompatActivity {
 
 
     }
+
 }
+
+

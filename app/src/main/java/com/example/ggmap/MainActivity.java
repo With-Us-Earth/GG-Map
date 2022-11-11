@@ -140,6 +140,11 @@ public class MainActivity extends AppCompatActivity {
                         intent = new Intent(getApplicationContext(), EmergencyCallActivity.class);
                         startActivity(intent);
                         break;
+                    //안심귀가서비스 탭
+                    case R.id.go_home_tap:
+                        intent = new Intent(getApplicationContext(), GoHomeActivity.class);
+                        startActivity(intent);
+                        break;
                 }
 
                 drawerLayout = findViewById(R.id.drawer_view);

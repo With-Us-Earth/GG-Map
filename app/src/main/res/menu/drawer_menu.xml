@@ -5,7 +5,7 @@
             <item android:title="       인적 확인" android:id="@+id/human_check_tap" />
             <item android:title="       북마크 관리" />
             <item android:title="       긴급전화 설정" android:id="@+id/emergency_call_tap"/>
-            <item android:title="       안심귀가서비스 설정" android:id="@+id/go_home_tap"/>
+            <item android:title="       안심귀가서비스" android:id="@+id/go_home_tap"/>
             <item android:title="       회원탈퇴" />
         </menu>
     </item>
