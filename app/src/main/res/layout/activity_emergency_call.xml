@@ -18,13 +18,22 @@
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:textStyle="bold"
-            android:text="긴급 전화번호: " />
+            android:text="긴급전화 설정" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="10dp"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textStyle="bold"
             android:textColor="@color/black"
-            android:text="phoneNumer" />
+            android:text="긴급 전화번호 " />
 
     </LinearLayout>
 
@@ -35,26 +44,88 @@
         android:layout_marginStart="10dp"
         android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:text="긴급 전화번호 설정: " />
-
         <EditText
             android:id="@+id/et_phone_num"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:inputType="number"
-            android:ems="10"/>
+            android:hint="전화번호를 입력해주세요."
+            android:ems="15"/>
 
         <Button
             android:id="@+id/btn_phone_save"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="저장" />
+            android:layout_marginRight="10dp"
+            android:text="저장"
+            android:onClick="onButtonClick"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"
+        android:orientation="horizontal">
+
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@color/purple_500"
+            android:text="   현재 긴급 전화번호   " />
+
+        <TextView
+            android:id="@+id/tv_phone_num"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:text="112" />
+
+        <Button
+            android:id="@+id/btn_phone_del"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:text="삭제" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="10dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/btn_baro_call"
+            android:layout_width="50dp"
+            android:layout_height="55dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:elevation="3dp"
+            android:padding="10dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginLeft="20dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/btn_baro_tel" />
 
     </LinearLayout>
 
