@@ -1,15 +1,17 @@
 package com.example.ggmap;
 
-public class GwangjinStreetLight {
+public class StreetLight {
+    private int Column1;
     private String name;
     private double latitude;
     private double longitude;
 
-    public GwangjinStreetLight(){
+    public StreetLight(){
 
     }
 
-    public GwangjinStreetLight(String name, double latitude, double longitude){
+    public StreetLight(double latitude, String name, int Column1, double longitude){
+        this.Column1 = Column1;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;

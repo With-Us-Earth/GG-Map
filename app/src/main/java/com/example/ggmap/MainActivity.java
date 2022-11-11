@@ -1,13 +1,9 @@
 package com.example.ggmap;
 
-import static com.example.ggmap.SearchResultActivity.tMapPointEnd;
-import static com.example.ggmap.SearchResultActivity.tMapPointStart;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -18,26 +14,16 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,40 +33,32 @@ import android.widget.Toast;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapMarkerItem;
 import com.skt.Tmap.TMapPoint;
-import com.skt.Tmap.TMapPolyLine;
-import com.skt.Tmap.TMapTapi;
 import com.skt.Tmap.TMapView;
-import com.skt.Tmap.poi_item.TMapPOIItem;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import com.skt.Tmap.TMapMarkerItem;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private TMapView tMapView;
     private LocationManager locationManager;
     private ActivityResultLauncher<String[]> locationPermissionRequest;
+
     private boolean lightButton = false;
-    private final ArrayList<GwangjinStreetLight> gwangjinStreetLightArrayList = new ArrayList<>();
+    private final ArrayList<StreetLight> streetLightArrayList = new ArrayList<>();
     private final ArrayList<TMapMarkerItem> markerLightItems = new ArrayList<>();
+    private Location location;
+    private double latitude;
+    private double longitude;
 
 
     boolean keep = true;
@@ -119,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
         linearLayout.addView(tMapView);
 
         //가로등
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("서울시");
-        databaseReference.child("종로구").addValueEventListener(valueEventListener);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference.child("중구").addValueEventListener(valueEventListener);
 
         //Navigation
         drawerLayout = findViewById(R.id.drawer_view);
@@ -148,18 +126,17 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                Intent intent;
 
                 switch (item.getItemId()) {
                     case R.id.human_check_tap:
                         //인적 확인 탭
-                        findViewById(R.id.human_check_tap).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                Intent intent = new Intent(getApplicationContext(), HumanCheckActivity.class);
-                                startActivity(intent);
-                            }
-                        });
+                        intent = new Intent(getApplicationContext(), HumanCheckActivity.class);
+                        startActivity(intent);
+                        break;
+                    case R.id.emergency_call_tap:
+                        intent = new Intent(getApplicationContext(), EmergencyCallActivity.class);
+                        startActivity(intent);
                         break;
                 }
 
@@ -200,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.ACCESS_COARSE_LOCATION
             });
         } else {
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1500, 10, locationListener);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1500, 10, locationListener);
@@ -211,8 +188,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_call).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(getApplicationContext(), .class);
-                //startActivity(intent);
+                startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse("tel:112")));
             }
         });
 
@@ -233,6 +209,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.btn_call).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse("tel:112")));
+            }
+        });
+
         findViewById(R.id.btn_max).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -250,37 +233,47 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_light).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int a = 0;
+                int a = 0, b = 0;
                 Bitmap lightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.streetlight);
+                ImageView imageView = findViewById(R.id.btn_light);
+
+                Location av = new Location("adad");
+                av.setLatitude(37.5635203138);
+                av.setLongitude(126.9780189096);
+                Location locationA = new Location("streetlight");
 
                 if (lightButton) {
                     lightButton = false;
-                    for (GwangjinStreetLight gwangjinStreetLight : gwangjinStreetLightArrayList) {
-                        markerLightItems.clear();
-                        tMapView.removeMarkerItem("gjStreetLightsLocation" + a);
+                    imageView.setImageResource(R.drawable.icon_light);
+                    markerLightItems.clear();
+
+                    for (StreetLight streetLight : streetLightArrayList) {
+                        tMapView.removeMarkerItem("StreetLightsLocation" + a);
                         a++;
                     }
+
                 } else {
                     lightButton = true;
-                    for (GwangjinStreetLight gwangjinStreetLight : gwangjinStreetLightArrayList) {
-                        double lat = gwangjinStreetLight.getLatitude();      // 위도
-                        double lon = gwangjinStreetLight.getLongitude();     // 경도
+                    imageView.setImageResource(R.drawable.icon_light_on);
 
-                        // TMapPoint
-                        markerLightItems.add(new TMapMarkerItem());
-                        TMapPoint tMapPoint = new TMapPoint(lat, lon);
+                    for (StreetLight streetLight : streetLightArrayList) {
+                        double lat = streetLight.getLatitude();      // 위도
+                        double lon = streetLight.getLongitude();     // 경도
 
-                        markerLightItems.get(a).setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용
-                        markerLightItems.get(a).setPosition(0.5f, 1.0f);  // Marker img의 position
-                        markerLightItems.get(a).setTMapPoint(tMapPoint);         // Marker의 위치
+                        locationA.setLatitude(lat);
+                        locationA.setLongitude(lon);
+                        float distance = av.distanceTo(locationA);
 
-                        // id로 Marker을 식별
-                        tMapView.addMarkerItem("gjStreetLightsLocation" + a, markerLightItems.get(a));
+                        if(distance <= 250) {
+                            createLightMarker(a, b, lat, lon, lightBitmap);
+                            b++;
+                        }
                         a++;
                     }
                 }
             }
         });
+
 
 
     } // end of onCreate()
@@ -290,8 +283,8 @@ public class MainActivity extends AppCompatActivity {
         public void onDataChange(@NonNull DataSnapshot snapshot) {
             int a = 0;
             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                GwangjinStreetLight gwangjinStreetLight = dataSnapshot.getValue(GwangjinStreetLight.class);
-                gwangjinStreetLightArrayList.add(gwangjinStreetLight);
+                StreetLight streetLight = dataSnapshot.getValue(StreetLight.class);
+                streetLightArrayList.add(streetLight);
             }
         }
 
@@ -359,5 +352,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void createLightMarker(int a, int b, double lat, double lon, Bitmap lightBitmap){
+        // TMapPoint
+        markerLightItems.add(new TMapMarkerItem());
+        TMapPoint tMapPoint = new TMapPoint(lat, lon);
+
+        markerLightItems.get(b).setIcon(lightBitmap);                 // bitmap를 Marker icon으로 사용
+        markerLightItems.get(b).setPosition(0.5f, 1.0f);  // Marker img의 position
+        markerLightItems.get(b).setTMapPoint(tMapPoint);         // Marker의 위치
+
+        // id로 Marker을 식별
+        tMapView.addMarkerItem("StreetLightsLocation" + a, markerLightItems.get(b));
+    }
+
+    public String getAddress(double lat, double lon){
+        String address = null;
+
+
+        return address;
+    }
 
 }
